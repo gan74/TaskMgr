@@ -130,35 +130,35 @@ uint ProcessDescriptor::getWorkingSet() const {
 
 
 double ProcessDescriptor::getCpuUsage() const {
-	ullong now = 0;
-	GetSystemTimeAsFileTime((LPFILETIME)&now);
-	ullong n = 0;
-	ullong sys = 0;
-	ullong user = 0;
-	HANDLE h = open(id);
-	if(!h || !GetProcessTimes(h, (LPFILETIME)&n, (LPFILETIME)&n, (LPFILETIME)&sys, (LPFILETIME)&user)) {
-		return -1;
-	}
-	if(!cpuTimes.last) {
-		cpuTimes.last = now;
-		cpuTimes.sys = sys;
-		cpuTimes.user = user;
-		return -1;
-	}
-	double cpu = user - cpuTimes.user + sys - cpuTimes.sys;
-	ullong d = now - cpuTimes.last;
 	SYSTEM_INFO sysInfo;
 	GetSystemInfo(&sysInfo);
-	if(!d || !sysInfo.dwNumberOfProcessors) {
+	ullong now = 0;
+	ullong n = 0;
+	ullong ker = 0;
+	ullong user = 0;
+	HANDLE h = open(id);
+	GetSystemTimeAsFileTime((LPFILETIME)&now);
+	if(!h || !GetProcessTimes(h, (LPFILETIME)&n, (LPFILETIME)&n, (LPFILETIME)&ker, (LPFILETIME)&user)) {
 		return -1;
 	}
-	cpu /= sysInfo.dwNumberOfProcessors;
-	cpu /= d;
-	cpuTimes.last = now;
-	cpuTimes.sys = sys;
-	cpuTimes.user = user;
-	cpuTimes.acc = cpuTimes.acc * cpuSmoothing + cpu * (1 - cpuSmoothing);
-	return cpuTimes.acc;
+	if(!cpuTimes.lastTime) {
+		cpuTimes.lastTime =  now;
+		cpuTimes.lastKer = ker;
+		cpuTimes.lastUser = user;
+		return -1;
+	}
+	ullong dt = now - cpuTimes.lastTime;
+	if(!dt) {
+		return -1;
+	}
+	ullong userTime = user - cpuTimes.lastUser;
+	ullong kerTime = ker - cpuTimes.lastKer;
+	ullong sysTime = userTime + kerTime;
+	cpuTimes.lastTime =  now;
+	cpuTimes.lastKer = ker;
+	cpuTimes.lastUser = user;
+	double u = double(sysTime) / (double(dt) * sysInfo.dwNumberOfProcessors);
+	return cpuTimes.acc = cpuTimes.acc * cpuSmoothing + u * (1.0 - cpuSmoothing);
 }
 
 bool ProcessDescriptor::terminate() {
@@ -194,33 +194,43 @@ double getMemoryUsage() {
 	return double(memInfo.ullTotalPageFile - memInfo.ullAvailPageFile) / memInfo.ullTotalPageFile;
 }
 
-double cpuAcc = 0;
-ullong lastTime = 0;
-ullong lastIdle = 0;
-
 double getCpuUsage() {
+	static double cpuAcc = 0;
+	static ullong lastTime = 0;
+	static ullong lastUser = 0;
+	static ullong lastKer = 0;
+	static ullong lastIdle = 0;
 	SYSTEM_INFO sysInfo;
 	GetSystemInfo(&sysInfo);
 	ullong idle = 0;
-	ullong sys = 0;
+	ullong ker = 0;
 	ullong user = 0;
 	ullong now = 0;
 	GetSystemTimeAsFileTime((LPFILETIME)&now);
-	if(!GetSystemTimes((LPFILETIME)&idle, (LPFILETIME)&sys, (LPFILETIME)&user)) {
+	if(!GetSystemTimes((LPFILETIME)&idle, (LPFILETIME)&ker, (LPFILETIME)&user)) {
 		return -1;
 	}
 	if(!lastTime) {
 		lastTime =  now;
+		lastKer = ker;
+		lastUser = user;
 		lastIdle = idle;
 		return -1;
 	}
-	ullong d = now - lastTime;
+	ullong dt = now - lastTime;
+	if(!dt) {
+		return -1;
+	}
 	ullong idleTime = idle - lastIdle;
+	ullong userTime = user - lastUser;
+	ullong kerTime = ker - lastKer;
+	ullong sysTime = userTime + kerTime;
 	lastTime =  now;
+	lastKer = ker;
+	lastUser = user;
 	lastIdle = idle;
-	double u = d ? 1 - (double(idleTime) / (double(d) * sysInfo.dwNumberOfProcessors)) : 0;
-	cpuAcc = cpuAcc * cpuSmoothing + u * (1 - cpuSmoothing);
-	return cpuAcc = u;
+	double u = double(sysTime - idleTime) / (double(sysTime) * sysInfo.dwNumberOfProcessors);
+	return cpuAcc = cpuAcc * cpuSmoothing + u * (1.0 - cpuSmoothing);
 }
 
 SystemPerformanceInfos getSystemPerformanceInfos() {

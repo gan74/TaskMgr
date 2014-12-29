@@ -17,7 +17,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "GraphView.h"
 #include <QtGui>
 
-GraphViewBase::GraphViewBase(QWidget *parent) : QWidget(parent), timeWindow(10), refreshRate(0.25), forceScroll(false), color(15, 125, 185) {
+GraphViewBase::GraphViewBase(QWidget *parent) : QWidget(parent), timeWindow(60), refreshRate(0.25), forceScroll(false), color(15, 125, 185) {
 }
 
 GraphViewBase::~GraphViewBase() {

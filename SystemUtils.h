@@ -43,14 +43,15 @@ class ProcessDescriptor
 		double getCpuUsage() const;
 		bool terminate();
 
-		mutable struct CpuTime
+		mutable struct CpuTimes
 		{
-			CpuTime() : last(0), acc(0) {
+			CpuTimes() : lastTime(0), lastKer(0), lastUser(0), lastIdle(0), acc(0) {
 			}
 
-			ullong last;
-			ullong sys;
-			ullong user;
+			ullong lastTime;
+			ullong lastKer;
+			ullong lastUser;
+			ullong lastIdle;
 
 			double acc;
 		} cpuTimes;
