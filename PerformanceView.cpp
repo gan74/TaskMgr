@@ -15,24 +15,20 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **********************************/
 
 #include "PerformanceView.h"
-#include "SystemUtils.h"
+#include "SystemMonitor.h"
 #include <QtWidgets>
 
 PerformanceView::PerformanceView(QWidget *parent) : QWidget(parent) {
-	cpu = new GraphView([]() { return getCpuUsage(); });
-	mem = new GraphView([]() {
-		SystemInfo *infos = getSystemInfo();
-		if(infos) {
-			double m = infos->usedMemory / infos->totalMemory;
-			delete infos;
-			return m;
-		}
-		return 0.0;
-	});
+	cpu = new GraphView([]() { return SystemMonitor::getMonitor()->getCpuUsage(); });
+	mem = new GraphView([]() { return SystemMonitor::getMonitor()->getMemoryUsage(); });
 	mem->setColor(Qt::green);
+
 	QVBoxLayout *layout = new QVBoxLayout(this);
 	layout->addWidget(cpu);
 	layout->addWidget(mem);
+
+	connect(SystemMonitor::getMonitor(), SIGNAL(infoUpdated()), cpu, SLOT(updateGraph()));
+	connect(SystemMonitor::getMonitor(), SIGNAL(infoUpdated()), mem, SLOT(updateGraph()));
 }
 
 PerformanceView::~PerformanceView() {

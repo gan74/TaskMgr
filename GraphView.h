@@ -96,17 +96,29 @@ class GraphView : public GraphViewBase
 
 	public:
 		template<typename T>
-		GraphView(const T &t, QWidget *parent = 0) : GraphViewBase(parent), updateTime(1), func(new Func<T>(t)) {
-			updateGraph();
+		GraphView(const T &t, QWidget *parent = 0) : GraphViewBase(parent), updateTime(0), func(new Func<T>(t)) {
 		}
 
 		template<typename T>
-		GraphView(double (*t)(), QWidget *parent = 0) : GraphViewBase(parent), updateTime(1), func(new FuncPtr(t)) {
-			updateGraph();
+		GraphView(double (*t)(), QWidget *parent = 0) : GraphViewBase(parent), updateTime(0), func(new FuncPtr(t)) {
 		}
 
 		~GraphView() {
 			delete func;
+		}
+
+		void setUpdateTime(double t) {
+			updateTime = t;
+			updateGraph();
+		}
+
+	public slots:
+		void updateGraph() {
+			double c = func->apply();
+			add(c);
+			if(updateTime) {
+				QTimer::singleShot(updateTime * 1000, this, SLOT(updateGraph));
+			}
 		}
 
 	protected:
@@ -122,12 +134,6 @@ class GraphView : public GraphViewBase
 
 
 	private:
-		void updateGraph() {
-			double c = func->apply();
-			add(c);
-			QTimer::singleShot(updateTime * 1000, this, updateGraph);
-		}
-
 		double updateTime;
 		FuncBase *func;
 };

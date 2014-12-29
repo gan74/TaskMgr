@@ -17,9 +17,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef PROCESSVIEW
 #define PROCESSVIEW
 
-#include "SystemUtils.h"
 #include <QtGui>
 #include <QtWidgets>
+#include "SystemUtils.h"
 
 class ProcessView : public QTreeWidget
 {
@@ -84,6 +84,7 @@ class ProcessView : public QTreeWidget
 		ProcessView(QWidget *parent = 0);
 		virtual ~ProcessView();
 
+	public slots:
 		void populateView();
 		void updateSystemInfos();
 		void updateSelection();
@@ -92,7 +93,7 @@ class ProcessView : public QTreeWidget
 		void viewUpdated();
 
 	private:
-		QStringList getHeaderLabels(SystemInfo *sys = 0);
+		QStringList getHeaderLabels();
 		Item *findItem(ProcessDescriptor d) const;
 };
 

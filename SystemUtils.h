@@ -23,28 +23,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 typedef size_t uint;
 typedef unsigned long long ullong;
 
-struct ProcessExtra
-{
-	double getCpuUsage(void *h);
-	bool init = false;
-	ullong last;
-	ullong lastSys;
-	ullong lastUser;
-};
-
 class ProcessDescriptor
 {
 	public:
-		ProcessDescriptor() : exe(""), id(0), parent(0), prio(0) {
-		}
-
-		ProcessDescriptor(const ProcessDescriptor &p) : exe(p.exe), id(p.id), parent(p.parent), prio(p.prio) {
-		}
-
 		~ProcessDescriptor() {
 		}
 
 		QString exe;
+		QString name;
 		int id;
 		int parent;
 		int prio;
@@ -72,10 +58,14 @@ class ProcessDescriptor
 
 struct SystemInfo
 {
-	int cpus;
-	double cpuUsage;
-	double totalMemory;
-	double usedMemory;
+	uint cpus;
+	ullong totalMemory;
+};
+
+struct SystemPerformanceInfos
+{
+	double cpu;
+	double mem;
 };
 
 
@@ -85,8 +75,9 @@ QString memString(double d);
 
 bool enableDebugPrivileges(bool bEnable);
 ProcessList getProcesses();
-double getCpuUsage();
+
 SystemInfo *getSystemInfo();
+SystemPerformanceInfos getSystemPerformanceInfos();
 
 
 #endif // PROCESS_H

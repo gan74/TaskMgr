@@ -15,6 +15,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **********************************/
 
 #include "ProcessView.h"
+#include "SystemMonitor.h"
 #include <iostream>
 
 ProcessView::Item::Item(ProcessView *view, const ProcessDescriptor &p) : QTreeWidgetItem(view), cpuUsage (-1), workingSet(0) {
@@ -31,7 +32,7 @@ const ProcessDescriptor &ProcessView::Item::getProcessDescriptor() const {
 
 void ProcessView::Item::setProcessDescriptor(const ProcessDescriptor &p) {
 	proc = p;
-	setText(Name, proc.exe);
+	setText(Name, proc.name);
 	setText(PID, QString::number(proc.id));
 	setText(Parent, QString::number(proc.parent));
 }
@@ -68,12 +69,12 @@ void ProcessView::Item::updateBackground() {
 	setBackgroundColor(WorkingSet, bg);
 }
 
-QStringList ProcessView::getHeaderLabels(SystemInfo *sys) {
+QStringList ProcessView::getHeaderLabels() {
 	return {QObject::tr("Name"),
 			QObject::tr("PID"),
 			QObject::tr("Parent"),
-			QObject::tr("CPU") + (sys && sys->cpuUsage > 0 ? QString(" (%1%)").arg(round(sys->cpuUsage * 100)) : QString()),
-			QObject::tr("Memory") + (sys ? QString(" (%1%)").arg(round(sys->usedMemory / sys->totalMemory * 100)) : QString())};
+			QObject::tr("CPU"),
+			QObject::tr("Memory") + QString(" (%1%)").arg(round(SystemMonitor::getMonitor()->getMemoryUsage() * 100))};
 }
 
 ProcessView::ProcessView(QWidget *parent) : QTreeWidget(parent) {
@@ -124,9 +125,7 @@ void ProcessView::updateSelection() {
 }
 
 void ProcessView::updateSystemInfos() {
-	SystemInfo *sys = getSystemInfo();
-	setHeaderLabels(getHeaderLabels(sys));
-	delete sys;
+	setHeaderLabels(getHeaderLabels());
 }
 
 ProcessView::Item *ProcessView::findItem(ProcessDescriptor d) const {

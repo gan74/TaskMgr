@@ -51,8 +51,6 @@ void setUp(QWidget *wid) {
 TaskManager::TaskManager(QWidget *parent) : QTabWidget(parent) {
 	processView = new ProcessView();
 	processView->setUniformRowHeights(true);
-	processView->setMinimumSize(400, 400);
-	processView->resize(400, 600);
 
 	terminateButton = new QPushButton(tr("End task"));
 	terminateButton->setEnabled(false);
@@ -75,12 +73,14 @@ TaskManager::TaskManager(QWidget *parent) : QTabWidget(parent) {
 	QTimer *selectionUpdateTimer = new QTimer(this);
 	selectionUpdateTimer->setInterval(processSelectionUpdateTime);
 
-	connect(processView, QTreeWidget::itemSelectionChanged, this, TaskManager::processSelected);
-	connect(terminateButton, QPushButton::clicked, this, TaskManager::terminate);
+	connect(processView, SIGNAL(itemSelectionChanged()), this, SLOT(processSelected()));
+	connect(terminateButton, SIGNAL(clicked()), this, SLOT(terminate()));
 	connect(processView, SIGNAL(viewUpdated()), viewUpdateTimer, SLOT(start()));
-	connect(viewUpdateTimer, QTimer::timeout, processView, ProcessView::populateView);
+	connect(viewUpdateTimer, SIGNAL(timeout()), processView, SLOT(populateView()));
 	selectionUpdateTimer->start();
 	processView->populateView();
+
+	resize(800, 600);
 
 	//setUp(this);
 }

@@ -23,9 +23,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 int main(int a, char **v) {
 	QApplication app(a, v);
 	TaskManager win;
-	if(!enableDebugPrivileges(true)) {
-		QMessageBox::warning(&win, QObject::tr("Unable to get debug privilege."), QObject::tr("Unable to get debug privilege, did you start with administrator rights ?"));
-	}
 	win.show();
 	return app.exec();
 }

@@ -1,5 +1,5 @@
 /*******************************
-Copyright (C) 2013-2014 gr�goire ANGERAND
+Copyright (C) 2013-2015 gregoire ANGERAND
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -14,32 +14,46 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **********************************/
 
-#ifndef MAINWINDOW_H
-#define MAINWINDOW_H
+#ifndef SYSTEMWATCHER_H
+#define SYSTEMWATCHER_H
 
-#include "ProcessView.h"
+#include <QThread>
+#include "SystemUtils.h"
 
-class TaskManager : public QTabWidget
+class SystemMonitor : public QThread
 {
 	Q_OBJECT
 
 	public:
-		TaskManager(QWidget *parent = 0);
-		~TaskManager();
+		~SystemMonitor();
 
+		static SystemMonitor *getMonitor() {
+			return monitor;
+		}
 
-	private slots:
-		void processSelected();
-		void terminate();
+		double getMemoryUsage() const;
+		double getCpuUsage() const;
+
+		ullong getTotalMemory() const;
+		uint getCpuCount() const;
+
+	signals:
+		void infoUpdated();
+
+	protected:
+		virtual void run() override;
 
 	private:
+		SystemMonitor();
 
-		const int processViewUpdateTime = 1000;
-		const int processSelectionUpdateTime = 500;
+		const double updateTime;
 
+		SystemInfo *infos;
 
-		ProcessView *processView;
-		QPushButton *terminateButton;
+		double cpuUsage;
+		double memUsage;
+
+		static SystemMonitor *monitor;
 };
 
-#endif // MAINWINDOW_H
+#endif // SYSTEMWATCHER_H

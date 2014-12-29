@@ -45,8 +45,8 @@ QString memString(double d) {
 
 ProcessList getProcesses() {
 	QList<ProcessDescriptor> procs;
+	wchar_t buffer[512] = {0};
 	HANDLE hProcessSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
-	// Take a snapshot of all processes in the system.
 	if(hProcessSnap == INVALID_HANDLE_VALUE) {
 		return procs;
 	}
@@ -57,11 +57,9 @@ ProcessList getProcesses() {
 		return procs;
 	}
 	do {
-		ProcessDescriptor info;
-		std::wstring exe(pe32.szExeFile);
-		info.exe = std::string(exe.begin(), exe.end()).c_str();
 		DWORD dwPriorityClass = 0;
 		HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, pe32.th32ProcessID);
+		SetLastError(0);
 		if(hProcess == 0) {
 			continue;
 		} else {
@@ -69,12 +67,22 @@ ProcessList getProcesses() {
 			if(!dwPriorityClass) {
 				continue;
 			}
-			CloseHandle(hProcess);
 		}
-
+		buffer[GetProcessImageFileName(hProcess, buffer, sizeof(buffer) / sizeof(wchar_t))] = 0;
+		ProcessDescriptor info;
+		std::wstring exe(buffer);
+		std::wstring name(pe32.szExeFile);
+		info.exe = std::string(exe.begin(), exe.end()).c_str();
+		info.name = std::string(name.begin(), name.end()).c_str();
 		info.id = pe32.th32ProcessID;
 		info.parent = pe32.th32ParentProcessID;
 		info.prio = dwPriorityClass;
+		CloseHandle(hProcess);
+		if(GetLastError()) {
+			std::cout<<"ERROR for "<<info.exe.toStdString()<<std::endl;
+			SetLastError(0);
+			continue;
+		}
 		procs.append(info);
 	} while(Process32Next(hProcessSnap, &pe32));
 	CloseHandle(hProcessSnap);
@@ -174,15 +182,21 @@ SystemInfo *getSystemInfo() {
 	SystemInfo *in = new SystemInfo();
 	in->cpus = sysInfo.dwNumberOfProcessors;
 	in->totalMemory = memInfo.ullTotalPageFile;
-	in->usedMemory = memInfo.ullTotalPageFile - memInfo.ullAvailPageFile;
-	in->cpuUsage = -1;
 	return in;
+}
+
+double getMemoryUsage() {
+	MEMORYSTATUSEX memInfo;
+	memInfo.dwLength = sizeof(MEMORYSTATUSEX);
+	if(!GlobalMemoryStatusEx(&memInfo)) {
+		return -1;
+	}
+	return double(memInfo.ullTotalPageFile - memInfo.ullAvailPageFile) / memInfo.ullTotalPageFile;
 }
 
 double cpuAcc = 0;
 ullong lastTime = 0;
 ullong lastIdle = 0;
-
 
 double getCpuUsage() {
 	SYSTEM_INFO sysInfo;
@@ -207,4 +221,11 @@ double getCpuUsage() {
 	double u = d ? 1 - (double(idleTime) / (double(d) * sysInfo.dwNumberOfProcessors)) : 0;
 	cpuAcc = cpuAcc * cpuSmoothing + u * (1 - cpuSmoothing);
 	return cpuAcc = u;
+}
+
+SystemPerformanceInfos getSystemPerformanceInfos() {
+	SystemPerformanceInfos in;
+	in.cpu = getCpuUsage();
+	in.mem = getMemoryUsage();
+	return in;
 }
