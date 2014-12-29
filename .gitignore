@@ -1,0 +1,8 @@
+/debug/
+/old/
+/release/
+/TaskMgr.pro.user.1ac973c.3.3-pre1
+/Makefile.Release
+/Makefile
+*.Debug
+*.pro.user
