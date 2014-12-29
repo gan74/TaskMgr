@@ -53,8 +53,14 @@ void ProcessView::Item::updatePerformanceInfos() {
 	updateBackground();
 }
 
+double curve(double x) {
+	x = pow(x, 0.8);
+	x = 1.0 - x;
+	return 1.0 - x * x * x;
+}
 
 void ProcessView::Item::updateBackground() {
+
 	QColor bg(Qt::white);
 	double hue = 0.56;
 	double sat = 0.78;
@@ -65,7 +71,7 @@ void ProcessView::Item::updateBackground() {
 		bg.setHslF(hue, sat, pow(1.0 - qMin(cpuUsage, 1.0), p) * L + baseL);
 	}
 	setBackgroundColor(CPU, bg);
-	bg.setHslF(hue, sat, pow(1.0 - qMin(workingSet / (500.0 * 1024 * 1024), 1.0), p) * L + baseL);
+	bg.setHslF(hue, sat, qMax(1.0 - curve(qMin(workingSet / (512.0 * 1024 * 1024), 1.0)), 0.0) * L + baseL);
 	setBackgroundColor(WorkingSet, bg);
 }
 
