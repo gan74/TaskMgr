@@ -15,7 +15,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **********************************/
 
 #include "TaskManager.h"
-#include "GraphView.h"
+#include "PerformanceView.h"
 
 #include <windows.h>
 typedef struct {
@@ -68,7 +68,7 @@ TaskManager::TaskManager(QWidget *parent) : QTabWidget(parent) {
 	bottomLayout->addWidget(terminateButton);
 	addTab(main, tr("Processes"));
 
-	addTab(new GraphView([]() { return getCpuUsage(); }), tr("Performance"));
+	addTab(new PerformanceView(), tr("Performance"));
 
 	QTimer *viewUpdateTimer = new QTimer(this);
 	viewUpdateTimer->setInterval(processViewUpdateTime);

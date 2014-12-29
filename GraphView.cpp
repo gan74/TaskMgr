@@ -16,9 +16,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "GraphView.h"
 #include <QtGui>
-#include <iostream>
 
-GraphViewBase::GraphViewBase(QWidget *parent) : QWidget(parent), timeWindow(10), refreshRate(0.25), forceScroll(false) {
+GraphViewBase::GraphViewBase(QWidget *parent) : QWidget(parent), timeWindow(10), refreshRate(0.25), forceScroll(false), color(15, 125, 185) {
 }
 
 GraphViewBase::~GraphViewBase() {
@@ -60,8 +59,7 @@ void GraphViewBase::paintEvent(QPaintEvent *event) {
 	double dTime = timeToDouble(time);
 
 	QWidget::paintEvent(event);
-	QColor border(15, 125, 185);
-	QColor back(215, 235, 245);
+	QColor back = color.lighter(250);
 	QPainter painter(this);
 	int margins = 10;
 	int dW = width() - 2 * margins;
@@ -77,7 +75,7 @@ void GraphViewBase::paintEvent(QPaintEvent *event) {
 		painter.drawLine(QLineF(x + margins, margins, x + margins, dH + margins));
 	}
 
-	painter.setPen(border);
+	painter.setPen(color);
 	painter.setClipping(true);
 	painter.setClipRect(QRect(margins, margins, dW, dH));
 	if(!data.isEmpty()) {
@@ -93,7 +91,7 @@ void GraphViewBase::paintEvent(QPaintEvent *event) {
 				if(last.x() != 0) {
 					QPolygonF fill(QVector<QPointF>{last + m,
 													next + m,
-													QPointF(next.x() + m.x(), height() - margins),
+													QPointF(next.x() + m.x() + 1, height() - margins),
 													QPointF(last.x() + m.x(), height() - margins)});
 					QPainterPath path;
 					path.addPolygon(fill);

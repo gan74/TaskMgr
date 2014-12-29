@@ -18,13 +18,15 @@ SOURCES += main.cpp\
 	ProcessView.cpp \
 	SystemUtils.cpp \
     GraphView.cpp \
-    TaskManager.cpp
+    TaskManager.cpp \
+    PerformanceView.cpp
 
 HEADERS  += \
 	ProcessView.h \
 	SystemUtils.h \
     GraphView.h \
-    TaskManager.h
+    TaskManager.h \
+    PerformanceView.h
 
 
 LIBS += -lpsapi -lpdh

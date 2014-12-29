@@ -49,6 +49,7 @@ class GraphViewBase : public QWidget
 		QList<Node> data;
 
 		bool forceScroll;
+		QColor color;
 };
 
 

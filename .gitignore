@@ -6,3 +6,4 @@
 /Makefile
 *.Debug
 *.pro.user
+/object_script.TskMgr.Release
