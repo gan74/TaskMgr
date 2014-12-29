@@ -29,6 +29,7 @@ PerformanceView::PerformanceView(QWidget *parent) : QWidget(parent) {
 		}
 		return 0.0;
 	});
+	mem->setColor(Qt::green);
 	QVBoxLayout *layout = new QVBoxLayout(this);
 	layout->addWidget(cpu);
 	layout->addWidget(mem);

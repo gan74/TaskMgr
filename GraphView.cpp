@@ -43,6 +43,10 @@ void GraphViewBase::add(double value) {
 }
 
 
+void GraphViewBase::setColor(const QColor &c) {
+	color = c;
+}
+
 void GraphViewBase::setForceScrollEnabled(bool e) {
 	forceScroll = e;
 	if(forceScroll) {
@@ -59,7 +63,10 @@ void GraphViewBase::paintEvent(QPaintEvent *event) {
 	double dTime = timeToDouble(time);
 
 	QWidget::paintEvent(event);
-	QColor back = color.lighter(250);
+
+	QColor base(15, 125, 185);
+	QColor light = base.lighter(250);
+	QColor back = QColor::fromHsl(color.hslHue(), color.hslSaturation(), 240);
 	QPainter painter(this);
 	int margins = 10;
 	int dW = width() - 2 * margins;
@@ -67,7 +74,7 @@ void GraphViewBase::paintEvent(QPaintEvent *event) {
 	painter.setRenderHint(QPainter::Antialiasing, true);
 
 
-	painter.setPen(back);
+	painter.setPen(light);
 	double w = dW / timeWindow;
 	double off = qMin(time.msec() / 1000.0, 1.0) * w;
 	for(double i = 0; i < timeWindow; i++) {
@@ -103,6 +110,7 @@ void GraphViewBase::paintEvent(QPaintEvent *event) {
 		}
 	}
 	painter.setRenderHint(QPainter::Antialiasing, false);
+	painter.setPen(base);
 	painter.drawRect(QRect(margins, margins, dW - 1, dH - 1));
 	if(!forceScroll) {
 		QTimer::singleShot(refreshRate * 1000, this, SLOT(update()));

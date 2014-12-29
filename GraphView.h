@@ -32,6 +32,8 @@ class GraphViewBase : public QWidget
 
 		void setForceScrollEnabled(bool e);
 
+		void setColor(const QColor &c);
+
 	protected:
 		virtual void paintEvent(QPaintEvent *event) override;
 
