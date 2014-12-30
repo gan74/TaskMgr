@@ -17,7 +17,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "GraphView.h"
 #include <QtGui>
 
-GraphViewBase::GraphViewBase(QWidget *parent) : QWidget(parent), timeWindow(60), refreshRate(0.25), forceScroll(false), color(15, 125, 185) {
+GraphViewBase::GraphViewBase(QWidget *parent) : QWidget(parent), start(QDateTime::currentDateTime()), timeWindow(60), refreshRate(0.25), forceScroll(false), backgroundScroll(false), color(15, 125, 185) {
 }
 
 GraphViewBase::~GraphViewBase() {
@@ -25,7 +25,7 @@ GraphViewBase::~GraphViewBase() {
 }
 
 void GraphViewBase::add(double value) {
-	QTime time = QTime::currentTime();
+	QDateTime time = QDateTime::currentDateTime();
 	data.append({time, qMin(qMax(value, 0.0), 1.0)});
 	while(data.size() > 1 && data[1].time.msecsTo(time) > timeWindow * 1000) {
 		data.removeFirst();
@@ -54,18 +54,18 @@ void GraphViewBase::setForceScrollEnabled(bool e) {
 	}
 }
 
-double GraphViewBase::timeToDouble(const QTime &time) const {
-	return 60 * time.minute() + time.second() + time.msec() / 1000.0;;
+double GraphViewBase::timeToDouble(const QDateTime &time) const {
+	return start.msecsTo(time) / 1000.0;
 }
 
 void GraphViewBase::paintEvent(QPaintEvent *event) {
-	QTime time = forceScroll || data.isEmpty() ? QTime::currentTime() : data.last().time;
+	QDateTime time = forceScroll || data.isEmpty() ? QDateTime::currentDateTime() : data.last().time;
 	double dTime = timeToDouble(time);
 
 	QWidget::paintEvent(event);
 
 	QColor base(15, 125, 185);
-	QColor light = base.lighter(250);
+	QColor light = base.lighter(237);
 	QColor back = QColor::fromHsl(color.hslHue(), color.hslSaturation(), 240);
 	QPainter painter(this);
 	int margins = 10;
@@ -76,7 +76,7 @@ void GraphViewBase::paintEvent(QPaintEvent *event) {
 
 	painter.setPen(light);
 	double w = dW / timeWindow;
-	double off = qMin(time.msec() / 1000.0, 1.0) * w;
+	double off = backgroundScroll ? qMin(time.time().msec() / 1000.0, 1.0) * w : 0;
 	for(double i = 0; i < timeWindow; i++) {
 		double x = dW - (off + i * w);
 		painter.drawLine(QLineF(x + margins, margins, x + margins, dH + margins));
@@ -93,6 +93,7 @@ void GraphViewBase::paintEvent(QPaintEvent *event) {
 			/*if(t < 0) {
 				continue;
 			}*/
+			t = qMax(qMin(t, 1.0), 0.0);
 			QPointF next(t * (dW - 4), (1.0 - n.value) * (dH - 4));
 			/*if(next.x() - last.x() > 5)*/ {
 				if(last.x() != 0) {

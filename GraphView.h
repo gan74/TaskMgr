@@ -40,17 +40,20 @@ class GraphViewBase : public QWidget
 	private:
 		struct Node
 		{
-			QTime time;
+			QDateTime time;
 			double value;
 		};
 
-		double timeToDouble(const QTime &time) const;
+		double timeToDouble(const QDateTime &time) const;
+
+		QDateTime start;
 
 		double timeWindow;
 		double refreshRate;
 		QList<Node> data;
 
 		bool forceScroll;
+		bool backgroundScroll;
 		QColor color;
 };
 
