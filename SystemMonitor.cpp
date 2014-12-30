@@ -19,9 +19,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 SystemMonitor *SystemMonitor::monitor = new SystemMonitor();
 
-SystemMonitor::SystemMonitor() : QThread(), updateTime(0.5), infos(getSystemInfo()) {
+SystemMonitor::SystemMonitor() : QThread(), updateTime(0.5), systemInfos(retrieveSystemInfos()) {
 	if(!enableDebugPrivileges(true)) {
-		QMessageBox::warning(0, QObject::tr("Unable to get debug privilege."), QObject::tr("Unable to get debug privilege, did you start with administrator rights ?"));
+		QMessageBox::warning(0, QObject::tr("Unable to get debug privileges."), QObject::tr("Unable to get debug privileges, did you start with administrator rights ?"));
 	}
 	start();
 }
@@ -30,29 +30,48 @@ SystemMonitor::~SystemMonitor() {
 }
 
 double SystemMonitor::getMemoryUsage() const {
-	return memUsage;
+	return perfInfos.mem;
 }
 
-double  SystemMonitor::getCpuUsage() const {
-	return cpuUsage;
+double  SystemMonitor::getCpuUsage(int core) const {
+	return core < 0 ? perfInfos.cpuTotal : perfInfos.cpuCores[core];
 }
 
 ullong SystemMonitor::getTotalMemory() const {
-	return infos ? infos->totalMemory : 0;
+	return systemInfos ? systemInfos->totalMemory : 0;
 }
 
 uint SystemMonitor::getCpuCount() const {
-	return infos ? infos->cpus : 0;
+	return systemInfos ? systemInfos->cpus : 0;
+}
+
+SystemInfo *SystemMonitor::retrieveSystemInfos() {
+	if(systemInfos) {
+		return systemInfos;
+	}
+	systemInfos = getSystemInfo();
+	if(systemInfos && systemInfos->cpus > 0) {
+		perfInfos.cpuCores = new double[systemInfos->cpus];
+		counters.cpuCores = new CpuPerfCounter*[systemInfos->cpus];
+		for(uint i = 0; i != systemInfos->cpus; i++) {
+			counters.cpuCores[i] = new CpuPerfCounter(i);
+			perfInfos.cpuCores[i] = 0;
+		}
+	}
+	return systemInfos;
 }
 
 void SystemMonitor::run() {
 	qDebug("Monitor started");
 	while(true) {
-		infos = infos ? infos : getSystemInfo();
-		SystemPerformanceInfos perf = getSystemPerformanceInfos();
-		cpuUsage = perf.cpu;
-		memUsage = perf.mem;
-		emit(infoUpdated());
+		if(retrieveSystemInfos()) {
+			perfInfos.cpuTotal = counters.cpuTotal / 100;
+			perfInfos.mem = counters.mem / systemInfos->totalMemory;
+			for(uint i = 0; i != systemInfos->cpus; i++) {
+				perfInfos.cpuCores[i] = *counters.cpuCores[i];
+			}
+			emit(infoUpdated());
+		}
 		msleep(updateTime * 1000);
 	}
 }

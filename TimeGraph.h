@@ -24,55 +24,32 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 class TimeGraph : public Graph
 {
 	Q_OBJECT
+
+	struct Node
+	{
+		double time;
+		double value;
+	};
+
 	public:
-		TimeGraph() : start(QDateTime::currentDateTime()), timeWindow(30) {
-		}
+		TimeGraph();
 
-		void add(double value) {
-			QDateTime time = QDateTime::currentDateTime();
-			double dt = timeToDouble(time);
-			data.append({dt, value});
-			if(timeWindow) {
-				while(data.size() > 1 && dt - data[1].time > timeWindow * 1000) {
-					data.removeFirst();
-				}
-				if(dt - data.first().time > timeWindow * 1000) {
-					for(int i = 0; i < data.size() - 1; i++) {
-						if(dt - data[i + 1].time > timeWindow * 1000) {
-							for(; i > 0; i--) {
-								data.removeFirst();
-							}
-						}
-					}
-				}
-			}
-			emit(modified());
-		}
+		void setTimeWindow(double t);
 
-		virtual QVector<QPointF> getPoints() const override {
-			double dTime = timeToDouble(QDateTime::currentDateTime());
-			QVector<QPointF> pts;
-			pts.reserve(data.size());
-			for(const Node &n : data) {
-				pts.append(QPointF(n.time - (dTime - timeWindow), n.value));
-			}
-			return pts;
-		}
+		void add(double value);
+
+		virtual QVector<QPointF> getPoints() const override;
 
 	private:
-		struct Node
-		{
-			double time;
-			double value;
-		};
+		static QDateTime start;
 
-		double timeToDouble(const QDateTime &time) const {
+		static double timeToDouble(const QDateTime &time = QDateTime::currentDateTime()) {
 			return start.msecsTo(time) / 1000.0;
 		}
 
-		QDateTime start;
-		QList<Node> data;
+		void removeOldest(double dt = timeToDouble());
 
+		QList<Node> data;
 		double timeWindow;
 };
 

@@ -23,6 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <psapi.h>
 #include <tlhelp32.h>
 #include <pdh.h>
+#include <pdhmsg.h>
 #include <tchar.h>
 
 #include <iostream>
@@ -185,7 +186,7 @@ SystemInfo *getSystemInfo() {
 	return in;
 }
 
-double getMemoryUsage() {
+double getSystemMemoryUsage() {
 	MEMORYSTATUSEX memInfo;
 	memInfo.dwLength = sizeof(MEMORYSTATUSEX);
 	if(!GlobalMemoryStatusEx(&memInfo)) {
@@ -194,7 +195,7 @@ double getMemoryUsage() {
 	return double(memInfo.ullTotalPageFile - memInfo.ullAvailPageFile) / memInfo.ullTotalPageFile;
 }
 
-double getCpuUsage() {
+double getSystemCpuUsage() {
 	static double cpuAcc = 0;
 	static ullong lastTime = 0;
 	static ullong lastUser = 0;
@@ -233,9 +234,37 @@ double getCpuUsage() {
 	return cpuAcc = cpuAcc * cpuSmoothing + u * (1.0 - cpuSmoothing);
 }
 
-SystemPerformanceInfos getSystemPerformanceInfos() {
-	SystemPerformanceInfos in;
-	in.cpu = getCpuUsage();
-	in.mem = getMemoryUsage();
-	return in;
+class PdhPerfCounterImpl
+{
+	public:
+		PdhPerfCounterImpl(const QString &name) {
+			wchar_t *str = new wchar_t[name.size() + 1];
+			name.toWCharArray(str);
+			PdhOpenQuery(0, 0, &query);
+			PdhAddCounter(query, str, 0, &counter);
+			PdhCollectQueryData(query);
+			delete str;
+		}
+
+		double getValue() {
+			PDH_FMT_COUNTERVALUE val;
+			PdhCollectQueryData(query);
+			PdhGetFormattedCounterValue(counter, PDH_FMT_DOUBLE, 0, &val);
+			return val.doubleValue;
+		}
+
+	private:
+		PDH_HQUERY query;
+		PDH_HCOUNTER counter;
+};
+
+PdhPerfCounter::PdhPerfCounter(const QString &name) : impl(new PdhPerfCounterImpl(name)){
+}
+
+PdhPerfCounter::~PdhPerfCounter() {
+	delete impl;
+}
+
+double PdhPerfCounter::getValue() {
+	return impl->getValue();
 }

@@ -28,6 +28,8 @@ class PerformanceView : public QWidget
 		explicit PerformanceView(QWidget *parent = 0);
 		~PerformanceView();
 
+		void setGraphTimeWindow(double t);
+
 	signals:
 
 	private slots:

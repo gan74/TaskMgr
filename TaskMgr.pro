@@ -17,20 +17,21 @@ CONFIG += c++11
 SOURCES += main.cpp\
 	ProcessView.cpp \
 	SystemUtils.cpp \
-    GraphView.cpp \
-    TaskManager.cpp \
-    PerformanceView.cpp \
-    SystemMonitor.cpp
+	GraphView.cpp \
+	TaskManager.cpp \
+	PerformanceView.cpp \
+	SystemMonitor.cpp \
+	TimeGraph.cpp
 
 HEADERS  += \
 	ProcessView.h \
 	SystemUtils.h \
-    GraphView.h \
-    TaskManager.h \
-    PerformanceView.h \
-    SystemMonitor.h \
-    TimeGraph.h \
-    Graph.h
+	GraphView.h \
+	TaskManager.h \
+	PerformanceView.h \
+	SystemMonitor.h \
+	TimeGraph.h \
+	Graph.h
 
 
 LIBS += -lpsapi -lpdh

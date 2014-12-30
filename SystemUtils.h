@@ -63,12 +63,37 @@ struct SystemInfo
 	ullong totalMemory;
 };
 
-struct SystemPerformanceInfos
+class PdhPerfCounterImpl;
+
+class PdhPerfCounter
 {
-	double cpu;
-	double mem;
+	public:
+		PdhPerfCounter(const QString &name);
+		~PdhPerfCounter();
+
+		double getValue();
+
+		operator double() {
+			return getValue();
+		}
+
+	private:
+		PdhPerfCounterImpl *impl;
 };
 
+class CpuPerfCounter : public PdhPerfCounter
+{
+	public:
+		CpuPerfCounter(int core = -1) : PdhPerfCounter(QString("\\Processor(%1)\\% Processor Time").arg(core < 0 ? "_Total" : QString::number(core))) {
+		}
+};
+
+class MemoryPerfCounter : public PdhPerfCounter
+{
+	public:
+		MemoryPerfCounter() : PdhPerfCounter("\\Memory\\Available Bytes") {
+		}
+};
 
 using ProcessList = QList<ProcessDescriptor>;
 
@@ -77,8 +102,10 @@ QString memString(double d);
 bool enableDebugPrivileges(bool bEnable);
 ProcessList getProcesses();
 
+double getSystemMemoryUsage();
+double getSystemCpuUsage();
+
 SystemInfo *getSystemInfo();
-SystemPerformanceInfos getSystemPerformanceInfos();
 
 
 #endif // PROCESS_H

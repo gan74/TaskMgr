@@ -20,14 +20,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QtWidgets>
 
 PerformanceView::PerformanceView(QWidget *parent) : QWidget(parent), cpuGraph(new TimeGraph()), memGraph(new TimeGraph()), cpuView(new GraphView()), memView(new GraphView()) {
-	cpuView->setViewport(0, 0, 30, 1);
-	cpuView->setGraph(cpuGraph);
 	cpuView->setGraduations(2, 0.25);
+	cpuView->setGraph(cpuGraph);
 
 	memView->setColor(Qt::darkGreen);
-	memView->setViewport(0, 0, 30, 1);
-	memView->setGraph(memGraph);
 	memView->setGraduations(2, 0.25);
+	memView->setGraph(memGraph);
+
+	setGraphTimeWindow(30);
 
 	QVBoxLayout *layout = new QVBoxLayout(this);
 	layout->addWidget(cpuView);
@@ -37,7 +37,13 @@ PerformanceView::PerformanceView(QWidget *parent) : QWidget(parent), cpuGraph(ne
 }
 
 PerformanceView::~PerformanceView() {
+}
 
+void PerformanceView::setGraphTimeWindow(double t) {
+	cpuView->setViewport(0, 0, t, 1);
+	memView->setViewport(0, 0, t, 1);
+	cpuGraph->setTimeWindow(t);
+	memGraph->setTimeWindow(t);
 }
 
 void PerformanceView::updateGraphs() {

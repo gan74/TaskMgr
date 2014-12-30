@@ -32,7 +32,7 @@ class SystemMonitor : public QThread
 		}
 
 		double getMemoryUsage() const;
-		double getCpuUsage() const;
+		double getCpuUsage(int core = -1) const;
 
 		ullong getTotalMemory() const;
 		uint getCpuCount() const;
@@ -48,10 +48,23 @@ class SystemMonitor : public QThread
 
 		const double updateTime;
 
-		SystemInfo *infos;
+		struct
+		{
+			double mem;
+			double cpuTotal;
+			double *cpuCores;
+		} perfInfos;
 
-		double cpuUsage;
-		double memUsage;
+		struct
+		{
+			MemoryPerfCounter mem;
+			CpuPerfCounter cpuTotal;
+			CpuPerfCounter **cpuCores;
+		} counters;
+
+
+		SystemInfo *retrieveSystemInfos();
+		SystemInfo *systemInfos;
 
 		static SystemMonitor *monitor;
 };
