@@ -14,39 +14,24 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **********************************/
 
-#ifndef GRAPHVIEW_H
-#define GRAPHVIEW_H
+#ifndef GRAPH
+#define GRAPH
 
-#include "Graph.h"
-#include <QWidget>
-#include <QTime>
-#include <QTimer>
+#include <QObject>
+#include <QVector>
+#include <QPointF>
 
-
-class GraphView : public QWidget
+class Graph : public QObject
 {
 	Q_OBJECT
+
 	public:
-		GraphView(QWidget *parent = 0);
-		~GraphView();
+		virtual QVector<QPointF> getPoints() const = 0;
 
-		void setGraph(Graph *gr);
+	signals:
+		void modified();
 
-		void setColor(const QColor &c);
-		void setViewport(double x1, double y1, double x2, double y2);
-		void setGraduations(double x, double y);
-		void setGraphHeightOffset(int off);
-
-	protected:
-		virtual void paintEvent(QPaintEvent *event) override;
-
-	private:
-		Graph *graph;
-
-		QLineF viewport;
-		QPointF grads;
-
-		int graphHeightOffset;
-		QColor color;
 };
-#endif // GRAPHVIEW_H
+
+#endif // GRAPH
+

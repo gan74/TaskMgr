@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define PERFORMANCEVIEW_H
 
 #include <QWidget>
+#include "TimeGraph.h"
 #include "GraphView.h"
 
 class PerformanceView : public QWidget
@@ -29,11 +30,15 @@ class PerformanceView : public QWidget
 
 	signals:
 
-	public slots:
+	private slots:
+		void updateGraphs();
 
 	private:
-		GraphView *cpu;
-		GraphView *mem;
+		TimeGraph *cpuGraph;
+		TimeGraph *memGraph;
+
+		GraphView *cpuView;
+		GraphView *memView;
 };
 
 #endif // PERFORMANCEVIEW_H

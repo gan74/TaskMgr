@@ -28,7 +28,9 @@ HEADERS  += \
     GraphView.h \
     TaskManager.h \
     PerformanceView.h \
-    SystemMonitor.h
+    SystemMonitor.h \
+    TimeGraph.h \
+    Graph.h
 
 
 LIBS += -lpsapi -lpdh

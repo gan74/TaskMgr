@@ -16,22 +16,32 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "PerformanceView.h"
 #include "SystemMonitor.h"
+#include "TimeGraph.h"
 #include <QtWidgets>
 
-PerformanceView::PerformanceView(QWidget *parent) : QWidget(parent) {
-	cpu = new GraphView([]() { return SystemMonitor::getMonitor()->getCpuUsage(); });
-	mem = new GraphView([]() { return SystemMonitor::getMonitor()->getMemoryUsage(); });
-	mem->setColor(Qt::green);
+PerformanceView::PerformanceView(QWidget *parent) : QWidget(parent), cpuGraph(new TimeGraph()), memGraph(new TimeGraph()), cpuView(new GraphView()), memView(new GraphView()) {
+	cpuView->setViewport(0, 0, 30, 1);
+	cpuView->setGraph(cpuGraph);
+	cpuView->setGraduations(2, 0.25);
+
+	memView->setColor(Qt::darkGreen);
+	memView->setViewport(0, 0, 30, 1);
+	memView->setGraph(memGraph);
+	memView->setGraduations(2, 0.25);
 
 	QVBoxLayout *layout = new QVBoxLayout(this);
-	layout->addWidget(cpu);
-	layout->addWidget(mem);
+	layout->addWidget(cpuView);
+	layout->addWidget(memView);
 
-	connect(SystemMonitor::getMonitor(), SIGNAL(infoUpdated()), cpu, SLOT(updateGraph()));
-	connect(SystemMonitor::getMonitor(), SIGNAL(infoUpdated()), mem, SLOT(updateGraph()));
+	connect(SystemMonitor::getMonitor(), SIGNAL(infoUpdated()), this, SLOT(updateGraphs()));
 }
 
 PerformanceView::~PerformanceView() {
 
+}
+
+void PerformanceView::updateGraphs() {
+	cpuGraph->add(SystemMonitor::getMonitor()->getCpuUsage());
+	memGraph->add(SystemMonitor::getMonitor()->getMemoryUsage());
 }
 

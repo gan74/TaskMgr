@@ -16,104 +16,104 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "GraphView.h"
 #include <QtGui>
+#include <iostream>
 
-GraphViewBase::GraphViewBase(QWidget *parent) : QWidget(parent), start(QDateTime::currentDateTime()), timeWindow(60), refreshRate(0.25), forceScroll(false), backgroundScroll(false), color(15, 125, 185) {
+GraphView::GraphView(QWidget *parent) : QWidget(parent), graph(0), viewport(0, 0, 1, 1), grads(0, 0), graphHeightOffset(5), color(15, 125, 185) {
+	setMinimumHeight(35);
 }
 
-GraphViewBase::~GraphViewBase() {
-
+GraphView::~GraphView() {
 }
 
-void GraphViewBase::add(double value) {
-	QDateTime time = QDateTime::currentDateTime();
-	data.append({time, qMin(qMax(value, 0.0), 1.0)});
-	while(data.size() > 1 && data[1].time.msecsTo(time) > timeWindow * 1000) {
-		data.removeFirst();
+void GraphView::setGraph(Graph *gr) {
+	if(graph) {
+		disconnect(graph, 0, this, 0);
 	}
-	if(data.first().time.msecsTo(time) > timeWindow * 1000) {
-		for(int i = 0; i < data.size() - 1; i++) {
-			if(data[i + 1].time.msecsTo(time) > timeWindow * 1000) {
-				for(; i > 0; i--) {
-					data.removeFirst();
-				}
-			}
-		}
+	graph = gr;
+	if(graph) {
+		graph->setParent(this);
+		connect(graph, SIGNAL(modified()), this, SLOT(update()));
 	}
 	update();
 }
 
-
-void GraphViewBase::setColor(const QColor &c) {
+void GraphView::setColor(const QColor &c) {
 	color = c;
+	update();
 }
 
-void GraphViewBase::setForceScrollEnabled(bool e) {
-	forceScroll = e;
-	if(forceScroll) {
-		update();
-	}
+void GraphView::setViewport(double x1, double y1, double x2, double y2) {
+	viewport = QLineF(x1, y1, x2, y2);
+	update();
 }
 
-double GraphViewBase::timeToDouble(const QDateTime &time) const {
-	return start.msecsTo(time) / 1000.0;
+void GraphView::setGraduations(double x, double y) {
+	grads = QPointF(x, y);
+	update();
 }
 
-void GraphViewBase::paintEvent(QPaintEvent *event) {
-	QDateTime time = forceScroll || data.isEmpty() ? QDateTime::currentDateTime() : data.last().time;
-	double dTime = timeToDouble(time);
+void GraphView::setGraphHeightOffset(int off) {
+	graphHeightOffset = off;
+	update();
+}
 
+void GraphView::paintEvent(QPaintEvent *event) {
 	QWidget::paintEvent(event);
+	QColor borderColor(15, 125, 185);
+	QColor gradColor = borderColor.lighter(237);
+	QColor fillColor = QColor::fromHsl(color.hslHue(), color.hslSaturation(), 240);
+	fillColor.setAlphaF(0.5);
 
-	QColor base(15, 125, 185);
-	QColor light = base.lighter(237);
-	QColor back = QColor::fromHsl(color.hslHue(), color.hslSaturation(), 240);
+	int graphMargin = 20;;
+	QRect clip(graphMargin, graphMargin, width() - 2 * graphMargin, height() - 2 * graphMargin);
+
+	QTransform trans;
+	trans.translate(0, height());
+	trans.scale(1, -1);
+	trans.translate(graphMargin, graphMargin + graphHeightOffset);
+	trans.scale(clip.width() / viewport.dx(), (clip.height() - 2 * graphHeightOffset) / viewport.dy());
+
 	QPainter painter(this);
-	int margins = 10;
-	int dW = width() - 2 * margins;
-	int dH = height() - 2 * margins;
 	painter.setRenderHint(QPainter::Antialiasing, true);
+	painter.setClipRegion(clip);
+	painter.setTransform(trans);
 
+	QPen gradPen(gradColor);
+	gradPen.setWidthF(0.0);
 
-	painter.setPen(light);
-	double w = dW / timeWindow;
-	double off = backgroundScroll ? qMin(time.time().msec() / 1000.0, 1.0) * w : 0;
-	for(double i = 0; i < timeWindow; i++) {
-		double x = dW - (off + i * w);
-		painter.drawLine(QLineF(x + margins, margins, x + margins, dH + margins));
-	}
-
-	painter.setPen(color);
-	painter.setClipping(true);
-	painter.setClipRect(QRect(margins, margins, dW, dH));
-	if(!data.isEmpty()) {
-		QPointF last(0, 1);
-		QPointF m(margins + 1, margins + 1);
-		for(const Node &n : data) {
-			double t = (timeToDouble(n.time) - (dTime - timeWindow)) / timeWindow;
-			/*if(t < 0) {
-				continue;
-			}*/
-			t = qMax(qMin(t, 1.0), 0.0);
-			QPointF next(t * (dW - 4), (1.0 - n.value) * (dH - 4));
-			/*if(next.x() - last.x() > 5)*/ {
-				if(last.x() != 0) {
-					QPolygonF fill(QVector<QPointF>{last + m,
-													next + m,
-													QPointF(next.x() + m.x() + 1, height() - margins),
-													QPointF(last.x() + m.x(), height() - margins)});
-					QPainterPath path;
-					path.addPolygon(fill);
-					painter.fillPath(path, QBrush(back));
-					painter.drawLine(QLineF(last + m, next + m));
-				}
-				last = next;
-			}
+	painter.setPen(gradPen);
+	if(grads.x()) {
+		for(int i = 0; i * grads.x() < viewport.dx(); i++) {
+			painter.drawLine(QLineF(i * grads.x(), 0, i * grads.x(), viewport.dy()));
 		}
 	}
-	painter.setRenderHint(QPainter::Antialiasing, false);
-	painter.setPen(base);
-	painter.drawRect(QRect(margins, margins, dW - 1, dH - 1));
-	if(!forceScroll) {
-		QTimer::singleShot(refreshRate * 1000, this, SLOT(update()));
+	if(grads.y()) {
+		int i = 0;
+		for(; i * grads.y() < viewport.dy(); i++) {
+			painter.drawLine(QLineF(0, i * grads.y(), viewport.dx(), i * grads.y()));
+		}
+		painter.drawLine(QLineF(0, i * grads.y(), viewport.dx(), i * grads.y()));
 	}
+
+	if(graph) {
+		QPolygonF poly(graph->getPoints() << QPointF((viewport.x1() + viewport.x2()) * 0.5, -1e15));
+		if(poly.size() > 3) {
+			trans.translate(-viewport.x1(), -viewport.y1());
+			painter.setTransform(trans);
+
+			QPainterPath path;
+			path.addPolygon(poly);
+			painter.fillPath(path, QBrush(fillColor));
+
+			QPen linePen(color);
+			linePen.setWidthF(0.0);
+			painter.setPen(linePen);
+			painter.drawPolyline(poly);
+		}
+	}
+
+	painter.setTransform(QTransform());
+	painter.setRenderHint(QPainter::Antialiasing, false);
+	painter.setPen(borderColor);
+	painter.drawRect(clip.adjusted(0, 0, -1, -1));
 }
