@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define PERFORMANCEVIEW_H
 
 #include <QWidget>
+#include <QGridLayout>
 #include "TimeGraph.h"
 #include "GraphView.h"
 
@@ -36,11 +37,17 @@ class PerformanceView : public QWidget
 		void updateGraphs();
 
 	private:
+		void createCores();
+
 		TimeGraph *cpuGraph;
+		TimeGraph **coreGraphs;
 		TimeGraph *memGraph;
 
 		GraphView *cpuView;
+		GraphView **coreViews;
 		GraphView *memView;
+
+		QGridLayout *coreLayout;
 };
 
 #endif // PERFORMANCEVIEW_H

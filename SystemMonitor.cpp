@@ -19,10 +19,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 SystemMonitor *SystemMonitor::monitor = new SystemMonitor();
 
-SystemMonitor::SystemMonitor() : QThread(), updateTime(0.5), systemInfos(retrieveSystemInfos()) {
+SystemMonitor::SystemMonitor() : QThread(), updateTime(0.5), systemInfos(0) {
 	if(!enableDebugPrivileges(true)) {
 		QMessageBox::warning(0, QObject::tr("Unable to get debug privileges."), QObject::tr("Unable to get debug privileges, did you start with administrator rights ?"));
 	}
+	retrieveSystemInfos();
 	start();
 }
 
@@ -68,7 +69,7 @@ void SystemMonitor::run() {
 			perfInfos.cpuTotal = counters.cpuTotal / 100;
 			perfInfos.mem = counters.mem / systemInfos->totalMemory;
 			for(uint i = 0; i != systemInfos->cpus; i++) {
-				perfInfos.cpuCores[i] = *counters.cpuCores[i];
+				perfInfos.cpuCores[i] = *counters.cpuCores[i] / 100;
 			}
 			emit(infoUpdated());
 		}

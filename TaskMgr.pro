@@ -11,7 +11,7 @@ TARGET = TskMgr
 TEMPLATE = app
 
 CONFIG += c++11
-#CONFIG += console
+CONFIG += console
 
 
 SOURCES += main.cpp\
