@@ -68,18 +68,8 @@ TaskManager::TaskManager(QWidget *parent) : QTabWidget(parent) {
 
 	addTab(new PerformanceView(), tr("Performance"));
 
-	QTimer *viewUpdateTimer = new QTimer(this);
-	viewUpdateTimer->setInterval(processViewUpdateTime);
-	QTimer *selectionUpdateTimer = new QTimer(this);
-	selectionUpdateTimer->setInterval(processSelectionUpdateTime);
-
 	connect(processView, SIGNAL(itemSelectionChanged()), this, SLOT(processSelected()));
-	connect(terminateButton, SIGNAL(clicked()), this, SLOT(terminate()));
-	connect(processView, SIGNAL(viewUpdated()), viewUpdateTimer, SLOT(start()));
-	connect(viewUpdateTimer, SIGNAL(timeout()), processView, SLOT(populateView()));
-	selectionUpdateTimer->start();
-	processView->populateView();
-
+	connect(terminateButton, SIGNAL(clicked()), this, SLOT(terminateSelected()));
 	resize(800, 600);
 
 	//setUp(this);
@@ -92,10 +82,9 @@ void TaskManager::processSelected() {
 	terminateButton->setEnabled(true);
 }
 
-void TaskManager::terminate() {
-	if(processView->selectedItems().isEmpty()) {
-		return;
+void TaskManager::terminateSelected() {
+	for(QTreeWidgetItem *item : processView->selectedItems()) {
+		dynamic_cast<ProcessView::Item *>(item)->terminateProcess();
 	}
-	dynamic_cast<ProcessView::Item *>(processView->selectedItems().first())->terminateProcess();
 }
 

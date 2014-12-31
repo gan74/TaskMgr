@@ -11,7 +11,7 @@ TARGET = TskMgr
 TEMPLATE = app
 
 CONFIG += c++11
-CONFIG += console
+#CONFIG += console
 
 
 SOURCES += main.cpp\
@@ -22,9 +22,9 @@ SOURCES += main.cpp\
 	PerformanceView.cpp \
 	SystemMonitor.cpp \
 	TimeGraph.cpp \
-    ProcessDescriptor.cpp \
-    ProcessMonitor.cpp \
-    PerfCounter.cpp
+	ProcessDescriptor.cpp \
+	ProcessMonitor.cpp \
+	PerfCounter.cpp
 
 HEADERS  += \
 	ProcessView.h \
@@ -35,10 +35,10 @@ HEADERS  += \
 	SystemMonitor.h \
 	TimeGraph.h \
 	Graph.h \
-    SystemIncludes.h \
-    ProcessDescriptor.h \
-    ProcessMonitor.h \
-    PerfCounter.h
+	SystemIncludes.h \
+	ProcessDescriptor.h \
+	ProcessMonitor.h \
+	PerfCounter.h
 
 
 LIBS += -lpsapi -lpdh

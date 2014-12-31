@@ -18,10 +18,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define SYSTEMWATCHER_H
 
 #include <QThread>
+#include "PerfCounter.h"
 
 class SystemInfo;
-class MemoryPerfCounter;
-class CpuPerfCounter;
 
 class SystemMonitor : public QThread
 {
@@ -58,13 +57,8 @@ class SystemMonitor : public QThread
 			double *cpuCores;
 		} perfInfos;
 
-		struct
-		{
-			MemoryPerfCounter *mem;
-			CpuPerfCounter *cpuTotal;
-			CpuPerfCounter **cpuCores;
-		} counters;
-
+		CpuPerfCounter cpuTotal;
+		CpuPerfCounter **cpuCores;
 
 		SystemInfo *retrieveSystemInfos();
 		SystemInfo *systemInfos;

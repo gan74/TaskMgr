@@ -113,7 +113,7 @@ double getSystemMemoryUsage() {
 	if(!GlobalMemoryStatusEx(&memInfo)) {
 		return -1;
 	}
-	return double(memInfo.ullTotalPageFile - memInfo.ullAvailPageFile) / memInfo.ullTotalPageFile;
+	return double(memInfo.ullTotalPhys - memInfo.ullAvailPhys) / memInfo.ullTotalPhys;
 }
 
 double getSystemCpuUsage() {

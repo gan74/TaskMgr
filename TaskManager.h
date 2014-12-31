@@ -30,14 +30,9 @@ class TaskManager : public QTabWidget
 
 	private slots:
 		void processSelected();
-		void terminate();
+		void terminateSelected();
 
 	private:
-
-		const int processViewUpdateTime = 1000;
-		const int processSelectionUpdateTime = 500;
-
-
 		ProcessView *processView;
 		QPushButton *terminateButton;
 };

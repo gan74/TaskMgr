@@ -44,11 +44,4 @@ class CpuPerfCounter : public PdhPerfCounter
 		}
 };
 
-class MemoryPerfCounter : public PdhPerfCounter
-{
-	public:
-		MemoryPerfCounter() : PdhPerfCounter("\\Memory\\Available Bytes") {
-		}
-};
-
 #endif // PERFCOUNTER_H

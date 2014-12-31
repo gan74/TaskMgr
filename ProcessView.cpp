@@ -82,13 +82,13 @@ QStringList ProcessView::getHeaderLabels() {
 	return {QObject::tr("Name"),
 			QObject::tr("PID"),
 			QObject::tr("Parent"),
-			QObject::tr("CPU"),
+			QObject::tr("CPU") + QString(" (%1%)").arg(round(SystemMonitor::getMonitor()->getCpuUsage() * 100)),
 			QObject::tr("Memory") + QString(" (%1%)").arg(round(SystemMonitor::getMonitor()->getMemoryUsage() * 100))};
 }
 
 ProcessView::ProcessView(QWidget *parent) : QTreeWidget(parent) {
 	setHeaderLabels(getHeaderLabels());
-	//setSelectionMode(QAbstractItemView::SingleSelection);
+	setSelectionMode(QAbstractItemView::ExtendedSelection);
 	header()->setSectionHidden(Parent, true);
 	setSortingEnabled(true);
 	sortByColumn(Name, Qt::AscendingOrder);
@@ -96,9 +96,17 @@ ProcessView::ProcessView(QWidget *parent) : QTreeWidget(parent) {
 	header()->setSectionResizeMode(QHeaderView::Fixed);
 	header()->setSectionResizeMode(Name, QHeaderView::Stretch);
 	setItemDelegate(new ItemDelegate());
+	updateTimer.setSingleShot(true);
+	updateTimer.setInterval(1000);
+	connect(&updateTimer, SIGNAL(timeout()), this, SLOT(populateView()));
 }
 
 ProcessView::~ProcessView() {
+}
+
+void ProcessView::showEvent(QShowEvent *event) {
+	QTreeWidget::showEvent(event);
+	populateView();
 }
 
 void ProcessView::populateView() {
@@ -121,16 +129,10 @@ void ProcessView::populateView() {
 		}
 	}
 	updateSystemInfos();
-	emit(viewUpdated());
-}
-
-void ProcessView::updateSelection() {
-	if(!selectedItems().isEmpty()) {
-		for(QTreeWidgetItem *i : selectedItems()) {
-			Item *item = dynamic_cast<Item *>(i);
-			item->updatePerformanceInfos();
-		}
+	if(isVisible()) {
+		updateTimer.start();
 	}
+	emit(viewUpdated());
 }
 
 void ProcessView::updateSystemInfos() {

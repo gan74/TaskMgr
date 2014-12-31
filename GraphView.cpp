@@ -60,7 +60,7 @@ void GraphView::setGraphHeightOffset(int off) {
 void GraphView::paintEvent(QPaintEvent *event) {
 	QWidget::paintEvent(event);
 	QColor borderColor(15, 125, 185);
-	QColor gradColor = borderColor.lighter(237);
+	QColor gradColor = borderColor.lighter(230);
 	QColor fillColor = QColor::fromHsl(color.hslHue(), color.hslSaturation(), 240);
 	fillColor.setAlphaF(0.5);
 

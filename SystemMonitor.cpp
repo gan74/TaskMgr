@@ -41,7 +41,7 @@ double  SystemMonitor::getCpuUsage(int core) const {
 }
 
 double SystemMonitor::getTotalMemory() const {
-	return systemInfos->totalMemory ;
+	return systemInfos->totalMemory;
 }
 
 uint SystemMonitor::getCpuCount() const {
@@ -57,11 +57,9 @@ SystemInfo *SystemMonitor::retrieveSystemInfos() {
 		qFatal("Unable to retrieve system infos !");
 	}
 	perfInfos.cpuCores = new double[systemInfos->cpus];
-	counters.cpuTotal = new CpuPerfCounter();
-	counters.mem = new MemoryPerfCounter();
-	counters.cpuCores = new CpuPerfCounter*[systemInfos->cpus];
+	cpuCores = new CpuPerfCounter*[systemInfos->cpus];
 	for(uint i = 0; i != systemInfos->cpus; i++) {
-		counters.cpuCores[i] = new CpuPerfCounter(i);
+		cpuCores[i] = new CpuPerfCounter(i);
 		perfInfos.cpuCores[i] = 0;
 	}
 	return systemInfos;
@@ -70,10 +68,10 @@ SystemInfo *SystemMonitor::retrieveSystemInfos() {
 void SystemMonitor::run() {
 	qDebug("Monitor started");
 	while(true) {
-		perfInfos.cpuTotal = *counters.cpuTotal / 100;
-		perfInfos.mem = *counters.mem / systemInfos->totalMemory;
+		perfInfos.cpuTotal = cpuTotal / 100;
+		perfInfos.mem = getSystemMemoryUsage();
 		for(uint i = 0; i != systemInfos->cpus; i++) {
-			perfInfos.cpuCores[i] = *counters.cpuCores[i] / 100;
+			perfInfos.cpuCores[i] = cpuCores[i]->getValue() / 100;
 		}
 		emit(infoUpdated());
 		msleep(updateTime * 1000);

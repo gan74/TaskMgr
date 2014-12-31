@@ -86,14 +86,20 @@ class ProcessView : public QTreeWidget
 		virtual ~ProcessView();
 
 	public slots:
-		void populateView();
-		void updateSystemInfos();
-		void updateSelection();
 
 	signals:
 		void viewUpdated();
 
+	protected:
+		virtual void showEvent(QShowEvent *event) override;
+
+	private slots:
+		void populateView();
+		void updateSystemInfos();
+
 	private:
+		QTimer updateTimer;
+
 		QStringList getHeaderLabels();
 		Item *findItem(ProcessDescriptor d) const;
 };
