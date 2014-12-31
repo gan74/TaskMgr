@@ -14,38 +14,31 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **********************************/
 
-#ifndef PERFORMANCEVIEW_H
-#define PERFORMANCEVIEW_H
+#ifndef SYSTEMINCLUDES
+#define SYSTEMINCLUDES
 
-#include <QWidget>
-#include <QGridLayout>
-#include "TimeGraph.h"
-#include "GraphView.h"
+#define NTDDI_WIN8
+#include <windows.h>
+#include <stdio.h>
+#include <tchar.h>
+#include <psapi.h>
+#include <tlhelp32.h>
+#include <pdh.h>
+#include <pdhmsg.h>
+#include <tchar.h>
 
-class PerformanceView : public QWidget
-{
-		Q_OBJECT
-	public:
-		explicit PerformanceView(QWidget *parent = 0);
-		~PerformanceView();
+#include <iostream>
+#include <string>
+#include <sstream>
 
-		void setGraphTimeWindow(double t);
+#include <locale>
 
-	signals:
 
-	private slots:
-		void updateGraphs();
+typedef size_t uint;
+typedef unsigned long long ullong;
 
-	private:
-		TimeGraph *cpuGraph;
-		TimeGraph **coreGraphs;
-		TimeGraph *memGraph;
+constexpr double cpuSmoothing = 0.5;
 
-		GraphView *cpuView;
-		GraphView **coreViews;
-		GraphView *memView;
 
-		QGridLayout *coreLayout;
-};
+#endif // SYSTEMINCLUDES
 
-#endif // PERFORMANCEVIEW_H

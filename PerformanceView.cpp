@@ -34,7 +34,18 @@ PerformanceView::PerformanceView(QWidget *parent) : QWidget(parent), cpuGraph(ne
 	layout->addLayout(coreLayout);
 	layout->addWidget(memView);
 
-	createCores();
+	uint cpus = SystemMonitor::getMonitor()->getCpuCount();
+	uint rows = cpus > 4 && cpus % 2 == 0 ? 2 : 1;
+	coreGraphs = new TimeGraph*[cpus];
+	coreViews = new GraphView*[cpus];
+	for(uint i = 0; i != cpus; i++) {
+		coreViews[i] = new GraphView();
+		coreGraphs[i] = new TimeGraph();
+		coreViews[i]->setGraduations(2, 0.25);
+		coreViews[i]->setGraph(coreGraphs[i]);
+		coreLayout->addWidget(coreViews[i], i % rows, i / rows);
+	}
+
 	setGraphTimeWindow(30);
 
 	connect(SystemMonitor::getMonitor(), SIGNAL(infoUpdated()), this, SLOT(updateGraphs()));
@@ -43,37 +54,14 @@ PerformanceView::PerformanceView(QWidget *parent) : QWidget(parent), cpuGraph(ne
 PerformanceView::~PerformanceView() {
 }
 
-void PerformanceView::createCores() {
-	if(coreGraphs) {
-		return;
-	}
-	uint cpus = SystemMonitor::getMonitor()->getCpuCount();
-	if(cpus) {
-		uint rows = cpus > 4 && cpus % 2 == 0 ? 2 : 1;
-		coreGraphs = new TimeGraph*[cpus];
-		coreViews = new GraphView*[cpus];
-		for(uint i = 0; i != cpus; i++) {
-			coreViews[i] = new GraphView();
-			coreGraphs[i] = new TimeGraph();
-			coreViews[i]->setGraduations(2, 0.25);
-			coreViews[i]->setGraph(coreGraphs[i]);
-			coreLayout->addWidget(coreViews[i], i % rows, i / rows);
-		}
-	}
-}
-
 void PerformanceView::setGraphTimeWindow(double t) {
 	cpuView->setViewport(0, 0, t, 1);
 	memView->setViewport(0, 0, t, 1);
 	cpuGraph->setTimeWindow(t);
 	memGraph->setTimeWindow(t);
-
-	createCores();
-	if(coreGraphs) {
-		for(uint i = 0; i != SystemMonitor::getMonitor()->getCpuCount(); i++) {
-			coreViews[i]->setViewport(0, 0, t, 1);
-			coreGraphs[i]->setTimeWindow(t);
-		}
+	for(uint i = 0; i != SystemMonitor::getMonitor()->getCpuCount(); i++) {
+		coreViews[i]->setViewport(0, 0, t, 1);
+		coreGraphs[i]->setTimeWindow(t);
 	}
 }
 

@@ -19,7 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <QtGui>
 #include <QtWidgets>
-#include "SystemUtils.h"
+#include "ProcessMonitor.h"
 
 class ProcessView : public QTreeWidget
 {
@@ -63,9 +63,10 @@ class ProcessView : public QTreeWidget
 				}
 
 			private:
-				void setProcessDescriptor(const ProcessDescriptor &p);
 				void updateBackground();
+
 				ProcessDescriptor proc;
+				ProcessMonitor mon;
 				double cpuUsage;
 				uint workingSet;
 		};

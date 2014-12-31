@@ -18,7 +18,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define SYSTEMWATCHER_H
 
 #include <QThread>
-#include "SystemUtils.h"
+
+class SystemInfo;
+class MemoryPerfCounter;
+class CpuPerfCounter;
 
 class SystemMonitor : public QThread
 {
@@ -34,7 +37,7 @@ class SystemMonitor : public QThread
 		double getMemoryUsage() const;
 		double getCpuUsage(int core = -1) const;
 
-		ullong getTotalMemory() const;
+		double getTotalMemory() const;
 		uint getCpuCount() const;
 
 	signals:
@@ -57,8 +60,8 @@ class SystemMonitor : public QThread
 
 		struct
 		{
-			MemoryPerfCounter mem;
-			CpuPerfCounter cpuTotal;
+			MemoryPerfCounter *mem;
+			CpuPerfCounter *cpuTotal;
 			CpuPerfCounter **cpuCores;
 		} counters;
 

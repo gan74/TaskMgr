@@ -14,38 +14,32 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **********************************/
 
-#ifndef PERFORMANCEVIEW_H
-#define PERFORMANCEVIEW_H
+#ifndef PROCESSDESCRIPTOR_H
+#define PROCESSDESCRIPTOR_H
 
-#include <QWidget>
-#include <QGridLayout>
-#include "TimeGraph.h"
-#include "GraphView.h"
+#include <QString>
 
-class PerformanceView : public QWidget
+class ProcessDescriptor
 {
-		Q_OBJECT
 	public:
-		explicit PerformanceView(QWidget *parent = 0);
-		~PerformanceView();
+		ProcessDescriptor(const QString &e, const QString &n, int i, int par, int pri) : exe(e), name(n), id(i), parent(par), prio(pri) {
+		}
 
-		void setGraphTimeWindow(double t);
+		ProcessDescriptor() : ProcessDescriptor("", "", -1, -1, -1) {
+		}
 
-	signals:
+		ProcessDescriptor(const ProcessDescriptor &) = default;
 
-	private slots:
-		void updateGraphs();
+		QString exe;
+		QString name;
+		int id;
+		int parent;
+		int prio;
 
-	private:
-		TimeGraph *cpuGraph;
-		TimeGraph **coreGraphs;
-		TimeGraph *memGraph;
-
-		GraphView *cpuView;
-		GraphView **coreViews;
-		GraphView *memView;
-
-		QGridLayout *coreLayout;
+		bool operator==(const ProcessDescriptor &p) const {
+			return id == p.id;
+		}
 };
 
-#endif // PERFORMANCEVIEW_H
+
+#endif // PROCESSDESCRIPTOR_H

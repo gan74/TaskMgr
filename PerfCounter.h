@@ -14,38 +14,41 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **********************************/
 
-#ifndef PERFORMANCEVIEW_H
-#define PERFORMANCEVIEW_H
+#ifndef PERFCOUNTER_H
+#define PERFCOUNTER_H
 
-#include <QWidget>
-#include <QGridLayout>
-#include "TimeGraph.h"
-#include "GraphView.h"
+#include <QString>
 
-class PerformanceView : public QWidget
+class PdhPerfCounterImpl;
+
+class PdhPerfCounter
 {
-		Q_OBJECT
 	public:
-		explicit PerformanceView(QWidget *parent = 0);
-		~PerformanceView();
+		PdhPerfCounter(const QString &name);
+		~PdhPerfCounter();
 
-		void setGraphTimeWindow(double t);
+		double getValue();
 
-	signals:
-
-	private slots:
-		void updateGraphs();
+		operator double() {
+			return getValue();
+		}
 
 	private:
-		TimeGraph *cpuGraph;
-		TimeGraph **coreGraphs;
-		TimeGraph *memGraph;
-
-		GraphView *cpuView;
-		GraphView **coreViews;
-		GraphView *memView;
-
-		QGridLayout *coreLayout;
+		PdhPerfCounterImpl *impl;
 };
 
-#endif // PERFORMANCEVIEW_H
+class CpuPerfCounter : public PdhPerfCounter
+{
+	public:
+		CpuPerfCounter(int core = -1) : PdhPerfCounter(QString("\\Processor(%1)\\% Processor Time").arg(core < 0 ? "_Total" : QString::number(core))) {
+		}
+};
+
+class MemoryPerfCounter : public PdhPerfCounter
+{
+	public:
+		MemoryPerfCounter() : PdhPerfCounter("\\Memory\\Available Bytes") {
+		}
+};
+
+#endif // PERFCOUNTER_H

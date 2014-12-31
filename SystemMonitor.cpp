@@ -15,6 +15,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **********************************/
 
 #include "SystemMonitor.h"
+#include "SystemUtils.h"
+#include "PerfCounter.h"
 #include <QMessageBox>
 
 SystemMonitor *SystemMonitor::monitor = new SystemMonitor();
@@ -38,12 +40,12 @@ double  SystemMonitor::getCpuUsage(int core) const {
 	return core < 0 ? perfInfos.cpuTotal : perfInfos.cpuCores[core];
 }
 
-ullong SystemMonitor::getTotalMemory() const {
-	return systemInfos ? systemInfos->totalMemory : 0;
+double SystemMonitor::getTotalMemory() const {
+	return systemInfos->totalMemory ;
 }
 
 uint SystemMonitor::getCpuCount() const {
-	return systemInfos ? systemInfos->cpus : 0;
+	return systemInfos->cpus;
 }
 
 SystemInfo *SystemMonitor::retrieveSystemInfos() {
@@ -51,13 +53,16 @@ SystemInfo *SystemMonitor::retrieveSystemInfos() {
 		return systemInfos;
 	}
 	systemInfos = getSystemInfo();
-	if(systemInfos && systemInfos->cpus > 0) {
-		perfInfos.cpuCores = new double[systemInfos->cpus];
-		counters.cpuCores = new CpuPerfCounter*[systemInfos->cpus];
-		for(uint i = 0; i != systemInfos->cpus; i++) {
-			counters.cpuCores[i] = new CpuPerfCounter(i);
-			perfInfos.cpuCores[i] = 0;
-		}
+	if(!systemInfos || !systemInfos->cpus) {
+		qFatal("Unable to retrieve system infos !");
+	}
+	perfInfos.cpuCores = new double[systemInfos->cpus];
+	counters.cpuTotal = new CpuPerfCounter();
+	counters.mem = new MemoryPerfCounter();
+	counters.cpuCores = new CpuPerfCounter*[systemInfos->cpus];
+	for(uint i = 0; i != systemInfos->cpus; i++) {
+		counters.cpuCores[i] = new CpuPerfCounter(i);
+		perfInfos.cpuCores[i] = 0;
 	}
 	return systemInfos;
 }
@@ -65,14 +70,12 @@ SystemInfo *SystemMonitor::retrieveSystemInfos() {
 void SystemMonitor::run() {
 	qDebug("Monitor started");
 	while(true) {
-		if(retrieveSystemInfos()) {
-			perfInfos.cpuTotal = counters.cpuTotal / 100;
-			perfInfos.mem = counters.mem / systemInfos->totalMemory;
-			for(uint i = 0; i != systemInfos->cpus; i++) {
-				perfInfos.cpuCores[i] = *counters.cpuCores[i] / 100;
-			}
-			emit(infoUpdated());
+		perfInfos.cpuTotal = *counters.cpuTotal / 100;
+		perfInfos.mem = *counters.mem / systemInfos->totalMemory;
+		for(uint i = 0; i != systemInfos->cpus; i++) {
+			perfInfos.cpuCores[i] = *counters.cpuCores[i] / 100;
 		}
+		emit(infoUpdated());
 		msleep(updateTime * 1000);
 	}
 }

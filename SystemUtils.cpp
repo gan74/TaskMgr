@@ -15,36 +15,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **********************************/
 
 #include "SystemUtils.h"
-
-#define NTDDI_WIN8
-#include <windows.h>
-#include <stdio.h>
-#include <tchar.h>
-#include <psapi.h>
-#include <tlhelp32.h>
-#include <pdh.h>
-#include <pdhmsg.h>
-#include <tchar.h>
-
-#include <iostream>
-#include <string>
-#include <sstream>
-
-#include <locale>
+#include "SystemIncludes.h"
 
 static_assert(sizeof(FILETIME) == sizeof(unsigned long long), "FILETIME should be the same as unsigned long long");
 
-constexpr double cpuSmoothing = 0.5;
-
-QString memString(double d) {
-	QString s[] = {" B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"};
-	int i = 0;
-	for(; d >= 1024; d /= 1024, i++);
-	d = round(d * 10) / 10;
-	return QString("%1 ").arg(d) + s[i];
-}
-
-ProcessList getProcesses() {
+QList<ProcessDescriptor> getProcesses() {
 	QList<ProcessDescriptor> procs;
 	wchar_t buffer[512] = {0};
 	HANDLE hProcessSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
@@ -70,28 +45,26 @@ ProcessList getProcesses() {
 			}
 		}
 		buffer[GetProcessImageFileName(hProcess, buffer, sizeof(buffer) / sizeof(wchar_t))] = 0;
-		ProcessDescriptor info;
+
 		std::wstring exe(buffer);
 		std::wstring name(pe32.szExeFile);
-		info.exe = std::string(exe.begin(), exe.end()).c_str();
-		info.name = std::string(name.begin(), name.end()).c_str();
-		info.id = pe32.th32ProcessID;
-		info.parent = pe32.th32ParentProcessID;
-		info.prio = dwPriorityClass;
 		CloseHandle(hProcess);
 		if(GetLastError()) {
-			std::cout<<"ERROR for "<<info.exe.toStdString()<<std::endl;
 			SetLastError(0);
 			continue;
 		}
-		procs.append(info);
+		procs.append(ProcessDescriptor(std::string(exe.begin(), exe.end()).c_str(),
+									   std::string(name.begin(), name.end()).c_str(),
+									   pe32.th32ProcessID,
+									   pe32.th32ParentProcessID,
+									   dwPriorityClass));
 	} while(Process32Next(hProcessSnap, &pe32));
 	CloseHandle(hProcessSnap);
 	return procs;
 }
 
-HANDLE open(int id) {
-	 return OpenProcess(PROCESS_ALL_ACCESS, FALSE, id);
+HANDLE open(const ProcessDescriptor &d) {
+	 return OpenProcess(PROCESS_ALL_ACCESS, FALSE, d.id);
 }
 
 bool enableDebugPrivileges(bool bEnable) {
@@ -117,58 +90,6 @@ bool enableDebugPrivileges(bool bEnable) {
 	return true;
 }
 
-uint ProcessDescriptor::getWorkingSet() const {
-	HANDLE h = open(id);
-	if(!h) {
-		return 0;
-	}
-	PROCESS_MEMORY_COUNTERS pmc;
-	if(!GetProcessMemoryInfo(h, &pmc, sizeof(pmc))) {
-		return 0;
-	}
-	return pmc.WorkingSetSize;
-}
-
-
-double ProcessDescriptor::getCpuUsage() const {
-	SYSTEM_INFO sysInfo;
-	GetSystemInfo(&sysInfo);
-	ullong now = 0;
-	ullong n = 0;
-	ullong ker = 0;
-	ullong user = 0;
-	HANDLE h = open(id);
-	GetSystemTimeAsFileTime((LPFILETIME)&now);
-	if(!h || !GetProcessTimes(h, (LPFILETIME)&n, (LPFILETIME)&n, (LPFILETIME)&ker, (LPFILETIME)&user)) {
-		return -1;
-	}
-	if(!cpuTimes.lastTime) {
-		cpuTimes.lastTime =  now;
-		cpuTimes.lastKer = ker;
-		cpuTimes.lastUser = user;
-		return -1;
-	}
-	ullong dt = now - cpuTimes.lastTime;
-	if(!dt) {
-		return -1;
-	}
-	ullong userTime = user - cpuTimes.lastUser;
-	ullong kerTime = ker - cpuTimes.lastKer;
-	ullong sysTime = userTime + kerTime;
-	cpuTimes.lastTime =  now;
-	cpuTimes.lastKer = ker;
-	cpuTimes.lastUser = user;
-	double u = double(sysTime) / (double(dt) * sysInfo.dwNumberOfProcessors);
-	return cpuTimes.acc = cpuTimes.acc * cpuSmoothing + u * (1.0 - cpuSmoothing);
-}
-
-bool ProcessDescriptor::terminate() {
-	HANDLE h = open(id);
-	if(!h) {
-		return false;
-	}
-	return TerminateProcess(h, 0);
-}
 
 
 SystemInfo *getSystemInfo() {
@@ -232,39 +153,4 @@ double getSystemCpuUsage() {
 	lastIdle = idle;
 	double u = double(sysTime - idleTime) / (double(sysTime) * sysInfo.dwNumberOfProcessors);
 	return cpuAcc = cpuAcc * cpuSmoothing + u * (1.0 - cpuSmoothing);
-}
-
-class PdhPerfCounterImpl
-{
-	public:
-		PdhPerfCounterImpl(const QString &name) {
-			wchar_t *str = new wchar_t[name.size() + 1];
-			name.toWCharArray(str);
-			PdhOpenQuery(0, 0, &query);
-			PdhAddCounter(query, str, 0, &counter);
-			PdhCollectQueryData(query);
-			delete str;
-		}
-
-		double getValue() {
-			PDH_FMT_COUNTERVALUE val;
-			PdhCollectQueryData(query);
-			PdhGetFormattedCounterValue(counter, PDH_FMT_DOUBLE, 0, &val);
-			return val.doubleValue;
-		}
-
-	private:
-		PDH_HQUERY query;
-		PDH_HCOUNTER counter;
-};
-
-PdhPerfCounter::PdhPerfCounter(const QString &name) : impl(new PdhPerfCounterImpl(name)){
-}
-
-PdhPerfCounter::~PdhPerfCounter() {
-	delete impl;
-}
-
-double PdhPerfCounter::getValue() {
-	return impl->getValue();
 }

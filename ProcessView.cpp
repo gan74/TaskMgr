@@ -16,10 +16,21 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "ProcessView.h"
 #include "SystemMonitor.h"
-#include <iostream>
+#include "SystemUtils.h"
 
-ProcessView::Item::Item(ProcessView *view, const ProcessDescriptor &p) : QTreeWidgetItem(view), cpuUsage (-1), workingSet(0) {
-	setProcessDescriptor(p);
+QString memString(double d) {
+	QString s[] = {" B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"};
+	int i = 0;
+	for(; d >= 1024; d /= 1024, i++);
+	d = round(d * 10) / 10;
+	return QString("%1 ").arg(d) + s[i];
+}
+
+
+ProcessView::Item::Item(ProcessView *view, const ProcessDescriptor &p) : QTreeWidgetItem(view), proc(p), mon(proc), cpuUsage(-1), workingSet(0) {
+	setText(Name, proc.name);
+	setText(PID, QString::number(proc.id));
+	setText(Parent, QString::number(proc.parent));
 	setTextAlignment(Name, Qt::AlignLeft | Qt::AlignVCenter);
 	for(int i = 1; i < Max; i++) {
 		setTextAlignment(i, Qt::AlignRight | Qt::AlignVCenter);
@@ -30,15 +41,8 @@ const ProcessDescriptor &ProcessView::Item::getProcessDescriptor() const {
 	return proc;
 }
 
-void ProcessView::Item::setProcessDescriptor(const ProcessDescriptor &p) {
-	proc = p;
-	setText(Name, proc.name);
-	setText(PID, QString::number(proc.id));
-	setText(Parent, QString::number(proc.parent));
-}
-
 bool ProcessView::Item::terminateProcess() {
-	bool r = proc.terminate();
+	bool r = mon.terminate();
 	if(r) {
 		setFlags(flags() & ~Qt::ItemIsEnabled);
 	}
@@ -46,8 +50,8 @@ bool ProcessView::Item::terminateProcess() {
 }
 
 void ProcessView::Item::updatePerformanceInfos() {
-	setText(WorkingSet, memString(workingSet = proc.getWorkingSet()));
-	double cpu = proc.getCpuUsage();
+	setText(WorkingSet, memString(workingSet = mon.getWorkingSet()));
+	double cpu = mon.getCpuUsage();
 	cpuUsage = cpu < 0 || cpu > 1 ? -1 : cpu;
 	setText(CPU, cpuUsage < 0 ? "" : QString::number(round(cpu * 1000) / 10) + "%");
 	updateBackground();
@@ -60,7 +64,6 @@ double curve(double x) {
 }
 
 void ProcessView::Item::updateBackground() {
-
 	QColor bg(Qt::white);
 	double hue = 0.56;
 	double sat = 0.78;
@@ -99,7 +102,7 @@ ProcessView::~ProcessView() {
 }
 
 void ProcessView::populateView() {
-	ProcessList infos = getProcesses();
+	QList<ProcessDescriptor> infos = getProcesses();
 	for(int i = 0; i != invisibleRootItem()->childCount(); i++) {
 		invisibleRootItem()->child(i)->setHidden(true);
 	}

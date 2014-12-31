@@ -14,38 +14,6 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **********************************/
 
-#ifndef PERFORMANCEVIEW_H
-#define PERFORMANCEVIEW_H
+#include "ProcessDescriptor.h"
 
-#include <QWidget>
-#include <QGridLayout>
-#include "TimeGraph.h"
-#include "GraphView.h"
 
-class PerformanceView : public QWidget
-{
-		Q_OBJECT
-	public:
-		explicit PerformanceView(QWidget *parent = 0);
-		~PerformanceView();
-
-		void setGraphTimeWindow(double t);
-
-	signals:
-
-	private slots:
-		void updateGraphs();
-
-	private:
-		TimeGraph *cpuGraph;
-		TimeGraph **coreGraphs;
-		TimeGraph *memGraph;
-
-		GraphView *cpuView;
-		GraphView **coreViews;
-		GraphView *memView;
-
-		QGridLayout *coreLayout;
-};
-
-#endif // PERFORMANCEVIEW_H

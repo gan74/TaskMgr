@@ -21,7 +21,10 @@ SOURCES += main.cpp\
 	TaskManager.cpp \
 	PerformanceView.cpp \
 	SystemMonitor.cpp \
-	TimeGraph.cpp
+	TimeGraph.cpp \
+    ProcessDescriptor.cpp \
+    ProcessMonitor.cpp \
+    PerfCounter.cpp
 
 HEADERS  += \
 	ProcessView.h \
@@ -31,7 +34,11 @@ HEADERS  += \
 	PerformanceView.h \
 	SystemMonitor.h \
 	TimeGraph.h \
-	Graph.h
+	Graph.h \
+    SystemIncludes.h \
+    ProcessDescriptor.h \
+    ProcessMonitor.h \
+    PerfCounter.h
 
 
 LIBS += -lpsapi -lpdh
