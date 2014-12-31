@@ -45,7 +45,7 @@ double SystemMonitor::getTotalMemory() const {
 }
 
 uint SystemMonitor::getCpuCount() const {
-	return systemInfos->cpus;
+	return qMin(systemInfos->cpus, 1u);
 }
 
 SystemInfo *SystemMonitor::retrieveSystemInfos() {

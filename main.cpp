@@ -20,10 +20,25 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QApplication>
 #include <QMessageBox>
 
+class Busyhread : public QThread
+{
+	public:
+		Busyhread() : QThread() {
+		}
+
+		virtual void run() override {
+			std::cout<<"Busy thread started !"<<std::endl;
+			while(true) {
+
+			}
+		}
+};
+
 int main(int a, char **v) {
 	QApplication app(a, v);
 	TaskManager win;
 	win.show();
+	//(new Busyhread())->start();
 	return app.exec();
 }
 

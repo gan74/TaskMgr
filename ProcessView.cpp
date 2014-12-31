@@ -71,7 +71,7 @@ void ProcessView::Item::updateBackground() {
 	double p = 0.4;
 	double L = 0.25;
 	if(cpuUsage >= 0) {
-		bg.setHslF(hue, sat, pow(1.0 - qMin(cpuUsage, 1.0), p) * L + baseL);
+		bg.setHslF(hue, sat, qMax(1.0 - curve(qMin(cpuUsage / SystemMonitor::getMonitor()->getCpuCount(), 1.0)), 0.0) * L + baseL);
 	}
 	setBackgroundColor(CPU, bg);
 	bg.setHslF(hue, sat, qMax(1.0 - curve(qMin(workingSet / (512.0 * 1024 * 1024), 1.0)), 0.0) * L + baseL);
