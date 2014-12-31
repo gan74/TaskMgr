@@ -23,6 +23,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 struct SystemInfo
 {
+	SystemInfo();
+
 	uint cpus;
 	double totalMemory;
 };
@@ -33,7 +35,6 @@ QList<ProcessDescriptor> getProcesses();
 double getSystemMemoryUsage();
 double getSystemCpuUsage();
 
-SystemInfo *getSystemInfo();
 
 
 #endif // PROCESS_H

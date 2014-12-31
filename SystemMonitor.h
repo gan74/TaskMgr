@@ -19,8 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <QThread>
 #include "PerfCounter.h"
-
-class SystemInfo;
+#include "SystemUtils.h"
 
 class SystemMonitor : public QThread
 {
@@ -60,8 +59,7 @@ class SystemMonitor : public QThread
 		CpuPerfCounter cpuTotal;
 		CpuPerfCounter **cpuCores;
 
-		SystemInfo *retrieveSystemInfos();
-		SystemInfo *systemInfos;
+		SystemInfo systemInfos;
 
 		static SystemMonitor *monitor;
 };

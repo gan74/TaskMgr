@@ -15,17 +15,20 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **********************************/
 
 #include "SystemMonitor.h"
-#include "SystemUtils.h"
-#include "PerfCounter.h"
 #include <QMessageBox>
 
 SystemMonitor *SystemMonitor::monitor = new SystemMonitor();
 
-SystemMonitor::SystemMonitor() : QThread(), updateTime(0.5), systemInfos(0) {
+SystemMonitor::SystemMonitor() : QThread(), updateTime(0.5) {
 	if(!enableDebugPrivileges(true)) {
 		QMessageBox::warning(0, QObject::tr("Unable to get debug privileges."), QObject::tr("Unable to get debug privileges, did you start with administrator rights ?"));
 	}
-	retrieveSystemInfos();
+	perfInfos.cpuCores = new double[systemInfos.cpus];
+	cpuCores = new CpuPerfCounter*[systemInfos.cpus];
+	for(uint i = 0; i != systemInfos.cpus; i++) {
+		cpuCores[i] = new CpuPerfCounter(i);
+		perfInfos.cpuCores[i] = 0;
+	}
 	start();
 }
 
@@ -41,28 +44,11 @@ double  SystemMonitor::getCpuUsage(int core) const {
 }
 
 double SystemMonitor::getTotalMemory() const {
-	return systemInfos->totalMemory;
+	return systemInfos.totalMemory;
 }
 
 uint SystemMonitor::getCpuCount() const {
-	return qMin(systemInfos->cpus, 1u);
-}
-
-SystemInfo *SystemMonitor::retrieveSystemInfos() {
-	if(systemInfos) {
-		return systemInfos;
-	}
-	systemInfos = getSystemInfo();
-	if(!systemInfos || !systemInfos->cpus) {
-		qFatal("Unable to retrieve system infos !");
-	}
-	perfInfos.cpuCores = new double[systemInfos->cpus];
-	cpuCores = new CpuPerfCounter*[systemInfos->cpus];
-	for(uint i = 0; i != systemInfos->cpus; i++) {
-		cpuCores[i] = new CpuPerfCounter(i);
-		perfInfos.cpuCores[i] = 0;
-	}
-	return systemInfos;
+	return systemInfos.cpus;
 }
 
 void SystemMonitor::run() {
@@ -70,7 +56,7 @@ void SystemMonitor::run() {
 	while(true) {
 		perfInfos.cpuTotal = cpuTotal / 100;
 		perfInfos.mem = getSystemMemoryUsage();
-		for(uint i = 0; i != systemInfos->cpus; i++) {
+		for(uint i = 0; i != systemInfos.cpus; i++) {
 			perfInfos.cpuCores[i] = cpuCores[i]->getValue() / 100;
 		}
 		emit(infoUpdated());

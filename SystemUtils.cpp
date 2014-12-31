@@ -90,21 +90,16 @@ bool enableDebugPrivileges(bool bEnable) {
 	return true;
 }
 
-
-
-SystemInfo *getSystemInfo() {
+SystemInfo::SystemInfo() {
 	MEMORYSTATUSEX memInfo;
 	memInfo.dwLength = sizeof(MEMORYSTATUSEX);
 	if(!GlobalMemoryStatusEx(&memInfo)) {
-		qDebug("Unable to get system informations.");
-		return 0;
+		qFatal("Unable to retrieve system infos !");
 	}
 	SYSTEM_INFO sysInfo;
 	GetSystemInfo(&sysInfo);
-	SystemInfo *in = new SystemInfo();
-	in->cpus = sysInfo.dwNumberOfProcessors;
-	in->totalMemory = memInfo.ullTotalPageFile;
-	return in;
+	cpus = qMax((uint)sysInfo.dwNumberOfProcessors, 1u);
+	totalMemory = memInfo.ullTotalPageFile;
 }
 
 double getSystemMemoryUsage() {
