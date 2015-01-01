@@ -18,15 +18,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "SystemMonitor.h"
 #include "SystemUtils.h"
 
-QString memString(double d) {
-	QString s[] = {" B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"};
-	int i = 0;
-	for(; d >= 1024; d /= 1024, i++);
-	d = round(d * 10) / 10;
-	return QString::number(d, 'f', 1) + " " + s[i];
-}
-
-
 ProcessView::Item::Item(ProcessView *view, const ProcessDescriptor &p) : QTreeWidgetItem(view), proc(p), mon(new ProcessMonitor(proc)), cpuUsage(-1), workingSet(0) {
 	setText(Name, proc.name);
 	setText(PID, QString::number(proc.id));
@@ -37,6 +28,10 @@ ProcessView::Item::Item(ProcessView *view, const ProcessDescriptor &p) : QTreeWi
 	}
 }
 
+ProcessView::Item::~Item() {
+	delete mon;
+}
+
 const ProcessDescriptor &ProcessView::Item::getProcessDescriptor() const {
 	return proc;
 }
@@ -45,13 +40,8 @@ ProcessMonitor *ProcessView::Item::getProcessMonitor() {
 	return mon;
 }
 
-bool ProcessView::Item::terminateProcess() {
-	setFlags(Qt::NoItemFlags);
-	return mon->terminate();
-}
-
 void ProcessView::Item::updatePerformanceInfos() {
-	setText(WorkingSet, memString(workingSet = mon->getWorkingSet()));
+	setText(WorkingSet, SystemMonitor::formatSize(workingSet = mon->getWorkingSet()));
 	double cpu = mon->getCpuUsage();
 	cpuUsage = cpu < 0 || cpu > 1 ? -1 : cpu;
 	setText(CPU, cpuUsage < 0 ? "" : QString::number(cpu, 'f', 1) + "%");

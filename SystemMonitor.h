@@ -60,6 +60,14 @@ class SystemMonitor : public QThread
 			return qMax(1.0 - x, 0.0) * 0.25 + 0.7;
 		}
 
+		static QString formatSize(double d) {
+			QString s[] = {" B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"};
+			int i = 0;
+			for(; d >= 1024; d /= 1024, i++);
+			d = round(d * 10) / 10;
+			return QString::number(d, 'f', 1) + " " + s[i];
+		}
+
 	signals:
 		void infoUpdated();
 

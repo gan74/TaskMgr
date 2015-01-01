@@ -59,12 +59,12 @@ class ProcessView : public QTreeWidget
 		{
 			public:
 				Item(ProcessView *view, const ProcessDescriptor &p);
+				~Item();
 
 				const ProcessDescriptor &getProcessDescriptor() const;
 				ProcessMonitor *getProcessMonitor();
 
 				void updatePerformanceInfos();
-				bool terminateProcess();
 
 				bool operator<(const QTreeWidgetItem &i) const {
 					int col = treeWidget()->sortColumn();
@@ -99,7 +99,9 @@ class ProcessView : public QTreeWidget
 				MonitorItem(Item *item) : QTreeWidgetItem(item), mon(item->getProcessMonitor()) {
 					setFlags(Qt::ItemNeverHasChildren);
 					treeWidget()->setFirstItemColumnSpanned(this, true);
-					treeWidget()->setItemWidget(this, 0, new ProcessMonitorWidget(mon));
+					ProcessMonitorWidget *mWid = new ProcessMonitorWidget(mon);
+					treeWidget()->setItemWidget(this, 0, mWid);
+					connect(item->treeWidget(), SIGNAL(viewUpdated()), mWid, SLOT(updateInfos()));
 				}
 
 			private:

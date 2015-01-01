@@ -17,6 +17,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef PROCESSMONITORWIDGET_H
 #define PROCESSMONITORWIDGET_H
 
+#include <QtWidgets>
 #include "GraphView.h"
 #include "ProcessMonitor.h"
 
@@ -30,10 +31,14 @@ class ProcessMonitorWidget : public QWidget
 	signals:
 
 	public slots:
+		void updateInfos();
 
 	private:
 		QWidget *createGraphView(MonitorRole role);
 		ProcessMonitor *monitor;
+
+		QLabel *reads;
+		QLabel *writes;
 };
 
 #endif // PROCESSMONITORWIDGET_H

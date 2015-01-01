@@ -25,19 +25,24 @@ class ProcessMonitorImpl;
 
 class ProcessMonitor : public QObject
 {
+	Q_OBJECT
+
 	public:
-		ProcessMonitor(const ProcessDescriptor &d);
-		~ProcessMonitor();
+		ProcessMonitor(const ProcessDescriptor &d, QObject *parent = 0);
+		virtual ~ProcessMonitor();
 
 		uint getWorkingSet() const;
 		double getCpuUsage() const;
-		bool terminate();
-
+		uint getReads() const;
+		uint getWrites() const;
 
 		ProcessMonitor &operator=(const ProcessMonitor &) = delete;
 		ProcessMonitor(const ProcessMonitor &) = delete;
 
 		TimeGraph *getGraph(MonitorRole mon);
+
+	public slots:
+		bool terminate();
 
 	private:
 		ProcessMonitorImpl *impl;

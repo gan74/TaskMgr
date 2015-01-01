@@ -124,7 +124,7 @@ void GraphView::paintEvent(QPaintEvent *event) {
 	QColor fillColor = QColor::fromHsl(color.hslHue(), color.hslSaturation(), 240);
 	fillColor.setAlphaF(0.5);
 
-	int graphMargin = 2;
+	int graphMargin = 0;
 	QRect clip(graphMargin, graphMargin, width() - 2 * graphMargin, height() - 2 * graphMargin);
 
 	painter.fillRect(rect(), Qt::white);

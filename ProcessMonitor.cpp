@@ -29,7 +29,7 @@ class ProcessMonitorImpl
 			}
 		}
 
-		uint getWorkingSet() const {
+		uint getWorkingSet() {
 			if(!handle) {
 				return 0;
 			}
@@ -41,7 +41,7 @@ class ProcessMonitorImpl
 		}
 
 
-		double getCpuUsage() const {
+		double getCpuUsage() {
 			if(!handle) {
 				return -1;
 			}
@@ -75,15 +75,31 @@ class ProcessMonitorImpl
 			return (cpuTimes.acc = cpuTimes.acc * cpuSmoothing + u * (1.0 - cpuSmoothing)) * 100;
 		}
 
+		uint getReads() {
+			IO_COUNTERS ios;
+			if(!GetProcessIoCounters(handle, &ios)) {
+				return 0;
+			}
+			return ios.ReadTransferCount;
+		}
+
+		uint getWrites() {
+			IO_COUNTERS ios;
+			if(!GetProcessIoCounters(handle, &ios)) {
+				return 0;
+			}
+			return ios.WriteTransferCount;
+		}
+
 		bool terminate() {
 			if(!handle) {
 				return false;
 			}
-			return TerminateProcess(handle, 0);
+			return TerminateProcess(handle, 1);
 		}
 
 	private:
-		mutable struct CpuTimes
+		struct CpuTimes
 		{
 			CpuTimes() : lastTime(0), lastKer(0), lastUser(0), lastIdle(0), acc(0) {
 			}
@@ -100,14 +116,19 @@ class ProcessMonitorImpl
 };
 
 
-ProcessMonitor::ProcessMonitor(const ProcessDescriptor &d) : impl(new ProcessMonitorImpl(d)), graphs{new TimeGraph(this), new TimeGraph(this)} {
+ProcessMonitor::ProcessMonitor(const ProcessDescriptor &d, QObject *parent) : QObject(parent), impl(new ProcessMonitorImpl(d)), graphs{new TimeGraph(this), new TimeGraph(this)} {
 }
 
 ProcessMonitor::~ProcessMonitor() {
 	delete impl;
-	for(int i = 0;i != MonitorRole::Max; i++) {
-		delete graphs[i];
-	}
+}
+
+uint ProcessMonitor::getReads() const {
+	return impl->getReads();
+}
+
+uint ProcessMonitor::getWrites() const {
+	return impl->getWrites();
 }
 
 uint ProcessMonitor::getWorkingSet() const {

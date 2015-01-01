@@ -49,26 +49,8 @@ void setUp(QWidget *wid) {
 }
 
 TaskManager::TaskManager(QWidget *parent) : QTabWidget(parent) {
-	processView = new ProcessView();
-
-	terminateButton = new QPushButton(tr("End task"));
-	terminateButton->setEnabled(false);
-
-
-	QWidget *main = new QWidget();
-	QVBoxLayout *mainLayout = new QVBoxLayout(main);
-	QHBoxLayout *bottomLayout = new QHBoxLayout();
-
-	mainLayout->addWidget(processView);
-	mainLayout->addLayout(bottomLayout);
-	bottomLayout->addStretch();
-	bottomLayout->addWidget(terminateButton);
-	addTab(main, tr("Processes"));
-
+	addTab(new ProcessView(), tr("Processes"));
 	addTab(new PerformanceView(), tr("Performance"));
-
-	connect(processView, SIGNAL(itemSelectionChanged()), this, SLOT(processSelected()));
-	connect(terminateButton, SIGNAL(clicked()), this, SLOT(terminateSelected()));
 	resize(800, 600);
 
 	//setUp(this);
@@ -77,13 +59,4 @@ TaskManager::TaskManager(QWidget *parent) : QTabWidget(parent) {
 TaskManager::~TaskManager() {
 }
 
-void TaskManager::processSelected() {
-	terminateButton->setEnabled(true);
-}
-
-void TaskManager::terminateSelected() {
-	for(QTreeWidgetItem *item : processView->selectedItems()) {
-		dynamic_cast<ProcessView::Item *>(item)->terminateProcess();
-	}
-}
 

@@ -26,15 +26,6 @@ class TaskManager : public QTabWidget
 	public:
 		TaskManager(QWidget *parent = 0);
 		~TaskManager();
-
-
-	private slots:
-		void processSelected();
-		void terminateSelected();
-
-	private:
-		ProcessView *processView;
-		QPushButton *terminateButton;
 };
 
 #endif // MAINWINDOW_H
