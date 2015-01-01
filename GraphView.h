@@ -34,6 +34,8 @@ class GraphView : public QWidget
 
 		void setAllowCompactMode(bool a);
 
+		void setYLabel(const QString &str);
+
 		void setColor(const QColor &c);
 		void setViewport(double x1, double y1, double x2, double y2);
 		void setGraduations(double x, double y);
@@ -51,5 +53,7 @@ class GraphView : public QWidget
 		int graphHeightOffset;
 		bool allowCompactMode;
 		QColor color;
+
+		QString yLabel;
 };
 #endif // GRAPHVIEW_H

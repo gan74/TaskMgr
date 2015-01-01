@@ -32,6 +32,8 @@ PerformanceView::PerformanceView(QWidget *parent) : QWidget(parent), coreGraphs(
 	}
 
 	coreLayout = new QGridLayout();
+	coreLayout->setHorizontalSpacing(0);
+	coreLayout->setVerticalSpacing(0);
 	layout->addLayout(coreLayout);
 
 	uint cpus = SystemMonitor::getMonitor()->getCpuCount();

@@ -23,7 +23,7 @@ QString memString(double d) {
 	int i = 0;
 	for(; d >= 1024; d /= 1024, i++);
 	d = round(d * 10) / 10;
-	return QString("%1 ").arg(d) + s[i];
+	return QString::number(d, 'f', 1) + " " + s[i];
 }
 
 
@@ -54,7 +54,7 @@ void ProcessView::Item::updatePerformanceInfos() {
 	setText(WorkingSet, memString(workingSet = mon->getWorkingSet()));
 	double cpu = mon->getCpuUsage();
 	cpuUsage = cpu < 0 || cpu > 1 ? -1 : cpu;
-	setText(CPU, cpuUsage < 0 ? "" : QString::number(round(cpu * 1000) / 10) + "%");
+	setText(CPU, cpuUsage < 0 ? "" : QString::number(cpu, 'f', 1) + "%");
 	updateBackground();
 }
 

@@ -19,7 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QtGui>
 #include <iostream>
 
-GraphView::GraphView(QWidget *parent) : QWidget(parent), graph(0), viewport(0, 0, 1, -1), grads(0, 0), graphHeightOffset(5), allowCompactMode(true), color(SystemMonitor::getGraphColor((MonitorRole)0)) {
+GraphView::GraphView(QWidget *parent) : QWidget(parent), graph(0), viewport(0, 0, 1, -1), grads(0, 0), graphHeightOffset(5), allowCompactMode(true), color(SystemMonitor::getGraphColor((MonitorRole)0)), yLabel("%1") {
 	setAutoFillBackground(true);
 	setMinimumHeight(35);
 }
@@ -30,6 +30,11 @@ GraphView::~GraphView() {
 
 void GraphView::setAllowCompactMode(bool a) {
 	allowCompactMode = a;
+	update();
+}
+
+void GraphView::setYLabel(const QString &str) {
+	yLabel = str;
 	update();
 }
 
@@ -104,10 +109,13 @@ void GraphView::paintEvent(QPaintEvent *event) {
 	if(size().height() == minimumHeight() && allowCompactMode) {
 		QColor fillColor(Qt::white);
 		if(!points.isEmpty()) {
-			double d = (points.last().x() / max - min) / (max - min);
+			double d = (points.last().y() / (max - min)) / (max - min);
 			fillColor = QColor::fromHsl(color.hslHue(), color.hslSaturation(), SystemMonitor::getGraphColorIntencity(d) * 255);
 		}
 		painter.fillRect(rect(), fillColor);
+		if(!points.isEmpty()) {
+			painter.drawText(rect(), Qt::AlignCenter, yLabel.arg(QString::number(points.last().y(), 'f', 2)));
+		}
 		return;
 	}
 
