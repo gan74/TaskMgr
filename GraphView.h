@@ -37,6 +37,8 @@ class GraphView : public QWidget
 		void setGraduations(double x, double y);
 		void setGraphHeightOffset(int off);
 
+		static QColor defaultColor();
+
 	protected:
 		virtual void paintEvent(QPaintEvent *event) override;
 

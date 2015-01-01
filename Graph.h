@@ -26,6 +26,9 @@ class Graph : public QObject
 	Q_OBJECT
 
 	public:
+		Graph(QObject *parent = 0) : QObject(parent) {
+		}
+
 		virtual QVector<QPointF> getPoints() const = 0;
 
 	signals:

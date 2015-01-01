@@ -1,5 +1,5 @@
 /*******************************
-Copyright (C) 2013-2014 gr�goire ANGERAND
+Copyright (C) 2013-2015 gregoire ANGERAND
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -14,33 +14,26 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **********************************/
 
-#include "SystemUtils.h"
-#include "TaskManager.h"
-#include <iostream>
-#include <QApplication>
-#include <QMessageBox>
+#ifndef PROCESSMONITORWIDGET_H
+#define PROCESSMONITORWIDGET_H
 
-class Busyhread : public QThread
+#include "GraphView.h"
+#include "ProcessMonitor.h"
+
+class ProcessMonitorWidget : public QWidget
 {
+	Q_OBJECT
 	public:
-		Busyhread() : QThread() {
-		}
+		explicit ProcessMonitorWidget(ProcessMonitor *mon, QWidget *parent = 0);
+		~ProcessMonitorWidget();
 
-		virtual void run() override {
-			std::cout<<"Busy thread started !"<<std::endl;
-			while(true) {
-				for(int i = 0; i > -1; i++) {
-				}
-				sleep(10);
-			}
-		}
+	signals:
+
+	public slots:
+
+	private:
+		QWidget *createGraphView(TimeGraph *gr, QColor color = GraphView::defaultColor());
+		ProcessMonitor *monitor;
 };
 
-int main(int a, char **v) {
-	QApplication app(a, v);
-	TaskManager win;
-	win.show();
-	//(new Busyhread())->start();
-	return app.exec();
-}
-
+#endif // PROCESSMONITORWIDGET_H

@@ -27,7 +27,7 @@ QString memString(double d) {
 }
 
 
-ProcessView::Item::Item(ProcessView *view, const ProcessDescriptor &p) : QTreeWidgetItem(view), proc(p), mon(proc), cpuUsage(-1), workingSet(0) {
+ProcessView::Item::Item(ProcessView *view, const ProcessDescriptor &p) : QTreeWidgetItem(view), proc(p), mon(new ProcessMonitor(proc)), cpuUsage(-1), workingSet(0) {
 	setText(Name, proc.name);
 	setText(PID, QString::number(proc.id));
 	setText(Parent, QString::number(proc.parent));
@@ -41,17 +41,18 @@ const ProcessDescriptor &ProcessView::Item::getProcessDescriptor() const {
 	return proc;
 }
 
+ProcessMonitor *ProcessView::Item::getProcessMonitor() {
+	return mon;
+}
+
 bool ProcessView::Item::terminateProcess() {
-	bool r = mon.terminate();
-	if(r) {
-		setFlags(flags() & ~Qt::ItemIsEnabled);
-	}
-	return r;
+	setFlags(Qt::NoItemFlags);
+	return mon->terminate();
 }
 
 void ProcessView::Item::updatePerformanceInfos() {
-	setText(WorkingSet, memString(workingSet = mon.getWorkingSet()));
-	double cpu = mon.getCpuUsage();
+	setText(WorkingSet, memString(workingSet = mon->getWorkingSet()));
+	double cpu = mon->getCpuUsage();
 	cpuUsage = cpu < 0 || cpu > 1 ? -1 : cpu;
 	setText(CPU, cpuUsage < 0 ? "" : QString::number(round(cpu * 1000) / 10) + "%");
 	updateBackground();
@@ -68,7 +69,6 @@ void ProcessView::Item::updateBackground() {
 	double hue = 0.56;
 	double sat = 0.78;
 	double baseL = 0.7;
-	double p = 0.4;
 	double L = 0.25;
 	if(cpuUsage >= 0) {
 		bg.setHslF(hue, sat, qMax(1.0 - curve(qMin(cpuUsage / SystemMonitor::getMonitor()->getCpuCount(), 1.0)), 0.0) * L + baseL);
@@ -86,19 +86,22 @@ QStringList ProcessView::getHeaderLabels() {
 			QObject::tr("Memory") + QString(" (%1%)").arg(round(SystemMonitor::getMonitor()->getMemoryUsage() * 100))};
 }
 
-ProcessView::ProcessView(QWidget *parent) : QTreeWidget(parent) {
+ProcessView::ProcessView(QWidget *parent) : QTreeWidget(parent), monitor(0) {
 	setHeaderLabels(getHeaderLabels());
-	setSelectionMode(QAbstractItemView::ExtendedSelection);
+	//setIndentation(0);
+	setTreePosition(Max);
+	setSelectionMode(QAbstractItemView::SingleSelection);
 	header()->setSectionHidden(Parent, true);
 	setSortingEnabled(true);
 	sortByColumn(Name, Qt::AscendingOrder);
 	header()->setStretchLastSection(false);
 	header()->setSectionResizeMode(QHeaderView::Fixed);
 	header()->setSectionResizeMode(Name, QHeaderView::Stretch);
-	setItemDelegate(new ItemDelegate());
+	setItemDelegate(new ItemDelegate(this));
 	updateTimer.setSingleShot(true);
 	updateTimer.setInterval(1000);
 	connect(&updateTimer, SIGNAL(timeout()), this, SLOT(populateView()));
+	connect(this, SIGNAL(currentItemChanged(QTreeWidgetItem *,QTreeWidgetItem *)), this, SLOT(openMonitor(QTreeWidgetItem*)));
 }
 
 ProcessView::~ProcessView() {
@@ -147,5 +150,20 @@ ProcessView::Item *ProcessView::findItem(ProcessDescriptor d) const {
 		}
 	}
 	return 0;
+}
+
+void ProcessView::openMonitor(QTreeWidgetItem *item) {
+	Item *it = dynamic_cast<Item *>(item);
+	if(monitor) {
+		monitor->parent()->setSelected(false);
+		monitor->parent()->removeChild(monitor);
+		monitor = 0;
+	}
+	if(it) {
+		monitor = new MonitorItem(it);
+		item->setExpanded(true);
+		item->setSelected(true);
+		monitor->setSizeHint(0, QSize(600, 100));
+	}
 }
 

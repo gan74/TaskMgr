@@ -20,10 +20,30 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QtGui>
 #include <QtWidgets>
 #include "ProcessMonitor.h"
+#include "ProcessMonitorWidget.h"
 
 class ProcessView : public QTreeWidget
 {
 	Q_OBJECT
+
+	class ItemDelegate : public QItemDelegate
+	{
+		public:
+			ItemDelegate(ProcessView *parent) : QItemDelegate(parent), view(parent) {
+			}
+
+			/*virtual QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &, const QModelIndex &) const override {
+				return new ProcessMonitorWidget(0, parent);
+			}*/
+
+			virtual QSize sizeHint(const QStyleOptionViewItem &, const QModelIndex &) const override {
+				return QSize(600, 20);
+			}
+
+		private:
+			ProcessView *view;
+	};
+
 	public:
 		enum Columns
 		{
@@ -39,7 +59,9 @@ class ProcessView : public QTreeWidget
 		{
 			public:
 				Item(ProcessView *view, const ProcessDescriptor &p);
+
 				const ProcessDescriptor &getProcessDescriptor() const;
+				ProcessMonitor *getProcessMonitor();
 
 				void updatePerformanceInfos();
 				bool terminateProcess();
@@ -66,20 +88,22 @@ class ProcessView : public QTreeWidget
 				void updateBackground();
 
 				ProcessDescriptor proc;
-				ProcessMonitor mon;
+				ProcessMonitor *mon;
 				double cpuUsage;
 				uint workingSet;
 		};
 
-		class ItemDelegate : public QItemDelegate
+		class MonitorItem : public QTreeWidgetItem
 		{
 			public:
-				ItemDelegate() {
+				MonitorItem(Item *item) : QTreeWidgetItem(item), mon(item->getProcessMonitor()) {
+					setFlags(Qt::ItemNeverHasChildren);
+					treeWidget()->setFirstItemColumnSpanned(this, true);
+					treeWidget()->setItemWidget(this, 0, new ProcessMonitorWidget(mon));
 				}
 
-				QSize sizeHint(const QStyleOptionViewItem &, const QModelIndex &) const {
-					return QSize(600, 23);
-				}
+			private:
+				ProcessMonitor *mon;
 		};
 
 		ProcessView(QWidget *parent = 0);
@@ -97,11 +121,15 @@ class ProcessView : public QTreeWidget
 		void populateView();
 		void updateSystemInfos();
 
-	private:
-		QTimer updateTimer;
+		void openMonitor(QTreeWidgetItem *item);
 
+	private:
 		QStringList getHeaderLabels();
 		Item *findItem(ProcessDescriptor d) const;
+
+		QTimer updateTimer;
+		MonitorItem *monitor;
+
 };
 
 #endif // PROCESSVIEW

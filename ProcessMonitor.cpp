@@ -100,7 +100,7 @@ class ProcessMonitorImpl
 };
 
 
-ProcessMonitor::ProcessMonitor(const ProcessDescriptor &d) : impl(new ProcessMonitorImpl(d)) {
+ProcessMonitor::ProcessMonitor(const ProcessDescriptor &d) : impl(new ProcessMonitorImpl(d)), cpuGraph(new TimeGraph(this)), memGraph(new TimeGraph(this)) {
 }
 
 ProcessMonitor::~ProcessMonitor() {
@@ -108,13 +108,25 @@ ProcessMonitor::~ProcessMonitor() {
 }
 
 uint ProcessMonitor::getWorkingSet() const {
-	return impl->getWorkingSet();
+	return memGraph->add(impl->getWorkingSet());
 }
 
 double ProcessMonitor::getCpuUsage() const {
-	return impl->getCpuUsage();
+	double u = impl->getCpuUsage();
+	if(u >= 0) {
+		cpuGraph->add(u);
+	}
+	return u;
 }
 
 bool ProcessMonitor::terminate() {
 	return impl->terminate();
+}
+
+TimeGraph *ProcessMonitor::getMemGraph() {
+	return memGraph;
+}
+
+TimeGraph *ProcessMonitor::getCpuGraph() {
+	return cpuGraph;
 }

@@ -50,7 +50,6 @@ void setUp(QWidget *wid) {
 
 TaskManager::TaskManager(QWidget *parent) : QTabWidget(parent) {
 	processView = new ProcessView();
-	processView->setUniformRowHeights(true);
 
 	terminateButton = new QPushButton(tr("End task"));
 	terminateButton->setEnabled(false);

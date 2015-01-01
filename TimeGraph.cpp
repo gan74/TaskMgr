@@ -19,7 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 QDateTime TimeGraph::start = QDateTime::currentDateTime();
 
-TimeGraph::TimeGraph() : timeWindow(30) {
+TimeGraph::TimeGraph(QObject *parent) : Graph(parent), timeWindow(10) {
 }
 
 void TimeGraph::setTimeWindow(double t) {
@@ -28,11 +28,16 @@ void TimeGraph::setTimeWindow(double t) {
 	emit(modified());
 }
 
-void TimeGraph::add(double value) {
+double TimeGraph::getTimeWindow() const {
+	return timeWindow;
+}
+
+double TimeGraph::add(double value) {
 	double dt = timeToDouble();
 	data.append({dt, value});
 	removeOldest(dt);
 	emit(modified());
+	return value;
 }
 
 QVector<QPointF> TimeGraph::getPoints() const {
@@ -47,12 +52,12 @@ QVector<QPointF> TimeGraph::getPoints() const {
 
 void TimeGraph::removeOldest(double dt) {
 	if(timeWindow && !data.isEmpty()) {
-		while(data.size() > 1 && dt - data[1].time > timeWindow * 1000) {
+		while(data.size() > 1 && dt - data[1].time > timeWindow) {
 			data.removeFirst();
 		}
-		if(dt - data.first().time > timeWindow * 1000) {
+		if(dt - data.first().time > timeWindow) {
 			for(int i = 0; i < data.size() - 1; i++) {
-				if(dt - data[i + 1].time > timeWindow * 1000) {
+				if(dt - data[i + 1].time > timeWindow) {
 					for(; i > 0; i--) {
 						data.removeFirst();
 					}

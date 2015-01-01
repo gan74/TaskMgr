@@ -32,11 +32,12 @@ class TimeGraph : public Graph
 	};
 
 	public:
-		TimeGraph();
+		TimeGraph(QObject *parent = 0);
 
 		void setTimeWindow(double t);
+		double getTimeWindow() const;
 
-		void add(double value);
+		double add(double value);
 
 		virtual QVector<QPointF> getPoints() const override;
 
