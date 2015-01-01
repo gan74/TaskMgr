@@ -19,6 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "ProcessDescriptor.h"
 #include "TimeGraph.h"
+#include "SystemMonitor.h"
 
 class ProcessMonitorImpl;
 
@@ -36,14 +37,12 @@ class ProcessMonitor : public QObject
 		ProcessMonitor &operator=(const ProcessMonitor &) = delete;
 		ProcessMonitor(const ProcessMonitor &) = delete;
 
-		TimeGraph *getCpuGraph();
-		TimeGraph *getMemGraph();
+		TimeGraph *getGraph(MonitorRole mon);
 
 	private:
 		ProcessMonitorImpl *impl;
 
-		TimeGraph *cpuGraph;
-		TimeGraph *memGraph;
+		TimeGraph *graphs[MonitorRole::Max];
 };
 
 #endif // PROCESSMONITOR_H

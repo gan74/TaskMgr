@@ -18,8 +18,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define SYSTEMWATCHER_H
 
 #include <QThread>
+#include <QColor>
 #include "PerfCounter.h"
 #include "SystemUtils.h"
+
+enum MonitorRole
+{
+	Cpu,
+	Memory,
+	Max
+};
 
 class SystemMonitor : public QThread
 {
@@ -35,8 +43,22 @@ class SystemMonitor : public QThread
 		double getMemoryUsage() const;
 		double getCpuUsage(int core = -1) const;
 
+		double getMonitorValue(MonitorRole mon) const;
+
 		double getTotalMemory() const;
 		uint getCpuCount() const;
+
+		static QColor getGraphColor(MonitorRole role) {
+			static QColor colors[MonitorRole::Max] = {QColor(15, 125, 185), QColor(Qt::darkGreen)};
+			return colors[role];
+		}
+
+		static double getGraphColorIntencity(double x) {
+			x = pow(x, 0.8);
+			x = 1.0 - x;
+			x =  1.0 - x * x * x;
+			return qMax(1.0 - x, 0.0) * 0.25 + 0.7;
+		}
 
 	signals:
 		void infoUpdated();
@@ -49,15 +71,12 @@ class SystemMonitor : public QThread
 
 		const double updateTime;
 
-		struct
-		{
-			double mem;
-			double cpuTotal;
-			double *cpuCores;
-		} perfInfos;
+		double values[Max];
+
+		double *coreValues;
+		CpuPerfCounter **cpuCores;
 
 		CpuPerfCounter cpuTotal;
-		CpuPerfCounter **cpuCores;
 
 		SystemInfo systemInfos;
 

@@ -58,23 +58,15 @@ void ProcessView::Item::updatePerformanceInfos() {
 	updateBackground();
 }
 
-double curve(double x) {
-	x = pow(x, 0.8);
-	x = 1.0 - x;
-	return 1.0 - x * x * x;
-}
-
 void ProcessView::Item::updateBackground() {
 	QColor bg(Qt::white);
 	double hue = 0.56;
 	double sat = 0.78;
-	double baseL = 0.7;
-	double L = 0.25;
 	if(cpuUsage >= 0) {
-		bg.setHslF(hue, sat, qMax(1.0 - curve(qMin(cpuUsage / SystemMonitor::getMonitor()->getCpuCount(), 1.0)), 0.0) * L + baseL);
+		bg.setHslF(hue, sat, SystemMonitor::getGraphColorIntencity(cpuUsage / SystemMonitor::getMonitor()->getCpuCount()));
 	}
 	setBackgroundColor(CPU, bg);
-	bg.setHslF(hue, sat, qMax(1.0 - curve(qMin(workingSet / (512.0 * 1024 * 1024), 1.0)), 0.0) * L + baseL);
+	bg.setHslF(hue, sat, SystemMonitor::getGraphColorIntencity(workingSet / (512.0 * 1024 * 1024)));
 	setBackgroundColor(WorkingSet, bg);
 }
 

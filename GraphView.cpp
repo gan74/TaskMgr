@@ -15,20 +15,22 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **********************************/
 
 #include "GraphView.h"
+#include "SystemMonitor.h"
 #include <QtGui>
 #include <iostream>
 
-QColor GraphView::defaultColor() {
-	return QColor(15, 125, 185);
-}
-
-GraphView::GraphView(QWidget *parent) : QWidget(parent), graph(0), viewport(0, 0, 1, 1), grads(0, 0), graphHeightOffset(5), color(defaultColor()) {
+GraphView::GraphView(QWidget *parent) : QWidget(parent), graph(0), viewport(0, 0, 1, -1), grads(0, 0), graphHeightOffset(5), allowCompactMode(true), color(SystemMonitor::getGraphColor((MonitorRole)0)) {
 	setAutoFillBackground(true);
 	setMinimumHeight(35);
 }
 
 GraphView::~GraphView() {
 	setGraph(0);
+}
+
+void GraphView::setAllowCompactMode(bool a) {
+	allowCompactMode = a;
+	update();
 }
 
 void GraphView::setGraph(Graph *gr) {
@@ -71,25 +73,17 @@ void GraphView::setGraphHeightOffset(int off) {
 void GraphView::paintEvent(QPaintEvent *event) {
 	QWidget::paintEvent(event);
 
-
-
-	QColor borderColor(15, 125, 185);
-	QColor gradColor = borderColor.lighter(230);
-	QColor fillColor = QColor::fromHsl(color.hslHue(), color.hslSaturation(), 240);
-	fillColor.setAlphaF(0.5);
-
-	int graphMargin = 2;
-	int heightOffset = graphHeightOffset;
-	QRect clip(graphMargin, graphMargin, width() - 2 * graphMargin, height() - 2 * graphMargin);
-
 	QLineF view = viewport;
+	double min = viewport.y1();
+	double max = viewport.y2();
+	int heightOffset = graphHeightOffset;
 	QVector<QPointF> points;
 	if(graph) {
 		points = graph->getPoints();
 	}
 	if(view.dy() <= 0 && !points.isEmpty()) {
-		double min = points.first().y();
-		double max = min;
+		min = points.first().y();
+		max = min;
 		for(const QPointF &p : points) {
 			min = qMin(min, p.y());
 			max = qMax(max, p.y());
@@ -107,6 +101,24 @@ void GraphView::paintEvent(QPaintEvent *event) {
 	}
 
 	QPainter painter(this);
+	if(size().height() == minimumHeight() && allowCompactMode) {
+		QColor fillColor(Qt::white);
+		if(!points.isEmpty()) {
+			double d = (points.last().x() / max - min) / (max - min);
+			fillColor = QColor::fromHsl(color.hslHue(), color.hslSaturation(), SystemMonitor::getGraphColorIntencity(d) * 255);
+		}
+		painter.fillRect(rect(), fillColor);
+		return;
+	}
+
+	QColor borderColor = SystemMonitor::getGraphColor((MonitorRole)0);
+	QColor gradColor = borderColor.lighter(230);
+	QColor fillColor = QColor::fromHsl(color.hslHue(), color.hslSaturation(), 240);
+	fillColor.setAlphaF(0.5);
+
+	int graphMargin = 2;
+	QRect clip(graphMargin, graphMargin, width() - 2 * graphMargin, height() - 2 * graphMargin);
+
 	painter.fillRect(rect(), Qt::white);
 	QTransform trans;
 	trans.translate(0, height());

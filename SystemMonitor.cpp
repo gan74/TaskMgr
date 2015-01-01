@@ -23,11 +23,11 @@ SystemMonitor::SystemMonitor() : QThread(), updateTime(0.5) {
 	if(!enableDebugPrivileges(true)) {
 		QMessageBox::warning(0, QObject::tr("Unable to get debug privileges."), QObject::tr("Unable to get debug privileges, did you start with administrator rights ?"));
 	}
-	perfInfos.cpuCores = new double[systemInfos.cpus];
+	coreValues = new double[systemInfos.cpus];
 	cpuCores = new CpuPerfCounter*[systemInfos.cpus];
 	for(uint i = 0; i != systemInfos.cpus; i++) {
 		cpuCores[i] = new CpuPerfCounter(i);
-		perfInfos.cpuCores[i] = 0;
+		coreValues[i] = 0;
 	}
 	start();
 }
@@ -36,11 +36,15 @@ SystemMonitor::~SystemMonitor() {
 }
 
 double SystemMonitor::getMemoryUsage() const {
-	return perfInfos.mem;
+	return values[MonitorRole::Memory];
 }
 
 double  SystemMonitor::getCpuUsage(int core) const {
-	return core < 0 ? perfInfos.cpuTotal : perfInfos.cpuCores[core];
+	return core < 0 ? values[MonitorRole::Cpu] : coreValues[core];
+}
+
+double SystemMonitor::getMonitorValue(MonitorRole mon) const {
+	return mon < 0 ? coreValues[-mon - 1] : values[mon];
 }
 
 double SystemMonitor::getTotalMemory() const {
@@ -54,10 +58,10 @@ uint SystemMonitor::getCpuCount() const {
 void SystemMonitor::run() {
 	qDebug("Monitor started");
 	while(true) {
-		perfInfos.cpuTotal = cpuTotal / 100;
-		perfInfos.mem = getSystemMemoryUsage();
+		values[MonitorRole::Cpu] = cpuTotal / 100;
+		values[MonitorRole::Memory] = getSystemMemoryUsage();
 		for(uint i = 0; i != systemInfos.cpus; i++) {
-			perfInfos.cpuCores[i] = cpuCores[i]->getValue() / 100;
+			coreValues[i] = cpuCores[i]->getValue() / 100;
 		}
 		emit(infoUpdated());
 		msleep(updateTime * 1000);

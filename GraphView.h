@@ -32,12 +32,12 @@ class GraphView : public QWidget
 
 		void setGraph(Graph *gr);
 
+		void setAllowCompactMode(bool a);
+
 		void setColor(const QColor &c);
 		void setViewport(double x1, double y1, double x2, double y2);
 		void setGraduations(double x, double y);
 		void setGraphHeightOffset(int off);
-
-		static QColor defaultColor();
 
 	protected:
 		virtual void paintEvent(QPaintEvent *event) override;
@@ -49,6 +49,7 @@ class GraphView : public QWidget
 		QPointF grads;
 
 		int graphHeightOffset;
+		bool allowCompactMode;
 		QColor color;
 };
 #endif // GRAPHVIEW_H

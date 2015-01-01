@@ -100,21 +100,24 @@ class ProcessMonitorImpl
 };
 
 
-ProcessMonitor::ProcessMonitor(const ProcessDescriptor &d) : impl(new ProcessMonitorImpl(d)), cpuGraph(new TimeGraph(this)), memGraph(new TimeGraph(this)) {
+ProcessMonitor::ProcessMonitor(const ProcessDescriptor &d) : impl(new ProcessMonitorImpl(d)), graphs{new TimeGraph(this), new TimeGraph(this)} {
 }
 
 ProcessMonitor::~ProcessMonitor() {
 	delete impl;
+	for(int i = 0;i != MonitorRole::Max; i++) {
+		delete graphs[i];
+	}
 }
 
 uint ProcessMonitor::getWorkingSet() const {
-	return memGraph->add(impl->getWorkingSet());
+	return graphs[MonitorRole::Memory]->add(impl->getWorkingSet());
 }
 
 double ProcessMonitor::getCpuUsage() const {
 	double u = impl->getCpuUsage();
 	if(u >= 0) {
-		cpuGraph->add(u);
+		graphs[MonitorRole::Cpu]->add(u);
 	}
 	return u;
 }
@@ -123,10 +126,6 @@ bool ProcessMonitor::terminate() {
 	return impl->terminate();
 }
 
-TimeGraph *ProcessMonitor::getMemGraph() {
-	return memGraph;
-}
-
-TimeGraph *ProcessMonitor::getCpuGraph() {
-	return cpuGraph;
+TimeGraph *ProcessMonitor::getGraph(MonitorRole mon) {
+	return graphs[mon];
 }

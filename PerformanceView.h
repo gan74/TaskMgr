@@ -19,6 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <QWidget>
 #include <QGridLayout>
+#include "SystemMonitor.h"
 #include "TimeGraph.h"
 #include "GraphView.h"
 
@@ -37,13 +38,11 @@ class PerformanceView : public QWidget
 		void updateGraphs();
 
 	private:
-		TimeGraph *cpuGraph;
-		TimeGraph **coreGraphs;
-		TimeGraph *memGraph;
+		TimeGraph *globalGraphs[MonitorRole::Max];
+		GraphView *globalViews[MonitorRole::Max];
 
-		GraphView *cpuView;
+		TimeGraph **coreGraphs;
 		GraphView **coreViews;
-		GraphView *memView;
 
 		QGridLayout *coreLayout;
 };

@@ -32,7 +32,7 @@ class ProcessMonitorWidget : public QWidget
 	public slots:
 
 	private:
-		QWidget *createGraphView(TimeGraph *gr, QColor color = GraphView::defaultColor());
+		QWidget *createGraphView(MonitorRole role);
 		ProcessMonitor *monitor;
 };
 

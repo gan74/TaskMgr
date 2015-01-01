@@ -20,19 +20,20 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 ProcessMonitorWidget::ProcessMonitorWidget(ProcessMonitor *mon, QWidget *parent) : QWidget(parent), monitor(mon) {
 	QHBoxLayout *layout = new QHBoxLayout(this);
-	layout->addWidget(createGraphView(mon->getCpuGraph()));
-	layout->addWidget(createGraphView(mon->getMemGraph(), Qt::darkGreen));
+	layout->addWidget(createGraphView(MonitorRole::Cpu));
+	layout->addWidget(createGraphView(MonitorRole::Memory));
 }
 
 ProcessMonitorWidget::~ProcessMonitorWidget() {
-	qDebug("~ProcessMonitorWidget()");
+	//qDebug("~ProcessMonitorWidget()");
 }
 
-QWidget *ProcessMonitorWidget::createGraphView(TimeGraph *gr, QColor color) {
+QWidget *ProcessMonitorWidget::createGraphView(MonitorRole role) {
 	GraphView *view = new GraphView();
-	view->setGraph(gr);
-	view->setColor(color);
+	view->setGraph(monitor->getGraph(role));
+	view->setAllowCompactMode(false);
+	view->setColor(SystemMonitor::getGraphColor(role));
 	view->setGraduations(1, 0);
-	view->setViewport(0, 0, gr->getTimeWindow(), -1);
+	view->setViewport(0, 0, monitor->getGraph(role)->getTimeWindow(), -1);
 	return view;
 }

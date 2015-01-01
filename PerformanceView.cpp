@@ -20,19 +20,19 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QtWidgets>
 #include <iostream>
 
-PerformanceView::PerformanceView(QWidget *parent) : QWidget(parent), cpuGraph(new TimeGraph()), coreGraphs(0), memGraph(new TimeGraph()), cpuView(new GraphView()), coreViews(0), memView(new GraphView()) {
-	cpuView->setGraduations(2, 0.25);
-	cpuView->setGraph(cpuGraph);
-
-	memView->setColor(Qt::darkGreen);
-	memView->setGraduations(2, 0.25);
-	memView->setGraph(memGraph);
-
+PerformanceView::PerformanceView(QWidget *parent) : QWidget(parent), coreGraphs(0), coreViews(0) {
 	QVBoxLayout *layout = new QVBoxLayout(this);
+	for(int i = 0; i != MonitorRole::Max; i++) {
+		globalGraphs[i] = new TimeGraph();
+		globalViews[i] = new GraphView();
+		globalViews[i]->setGraduations(2, 0.25);
+		globalViews[i]->setColor(SystemMonitor::getGraphColor((MonitorRole)i));
+		globalViews[i]->setGraph(globalGraphs[i]);
+		layout->addWidget(globalViews[i]);
+	}
+
 	coreLayout = new QGridLayout();
-	layout->addWidget(cpuView);
 	layout->addLayout(coreLayout);
-	layout->addWidget(memView);
 
 	uint cpus = SystemMonitor::getMonitor()->getCpuCount();
 	uint rows = cpus > 4 && cpus % 2 == 0 ? 2 : 1;
@@ -55,10 +55,10 @@ PerformanceView::~PerformanceView() {
 }
 
 void PerformanceView::setGraphTimeWindow(double t) {
-	cpuView->setViewport(0, 0, t, 1);
-	memView->setViewport(0, 0, t, 1);
-	cpuGraph->setTimeWindow(t);
-	memGraph->setTimeWindow(t);
+	for(int i = 0; i != MonitorRole::Max; i++) {
+		globalGraphs[i]->setTimeWindow(t);
+		globalViews[i]->setViewport(0, 0, t, 1);
+	}
 	for(uint i = 0; i != SystemMonitor::getMonitor()->getCpuCount(); i++) {
 		coreViews[i]->setViewport(0, 0, t, 1);
 		coreGraphs[i]->setTimeWindow(t);
@@ -66,8 +66,9 @@ void PerformanceView::setGraphTimeWindow(double t) {
 }
 
 void PerformanceView::updateGraphs() {
-	cpuGraph->add(SystemMonitor::getMonitor()->getCpuUsage());
-	memGraph->add(SystemMonitor::getMonitor()->getMemoryUsage());
+	for(int i = 0; i != MonitorRole::Max; i++) {
+		globalGraphs[i]->add(SystemMonitor::getMonitor()->getMonitorValue((MonitorRole)i));
+	}
 	if(coreGraphs) {
 		for(uint i = 0; i != SystemMonitor::getMonitor()->getCpuCount(); i++) {
 			coreGraphs[i]->add(SystemMonitor::getMonitor()->getCpuUsage(i));
