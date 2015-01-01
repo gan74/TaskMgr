@@ -25,7 +25,8 @@ PerformanceView::PerformanceView(QWidget *parent) : QWidget(parent), coreGraphs(
 	for(int i = 0; i != MonitorRole::Max; i++) {
 		globalGraphs[i] = new TimeGraph();
 		globalViews[i] = new GraphView();
-		globalViews[i]->setGraduations(2, 0.25);
+		globalViews[i]->setGraduations(2, 25);
+		globalViews[i]->setYLabel("%1%");
 		globalViews[i]->setColor(SystemMonitor::getGraphColor((MonitorRole)i));
 		globalViews[i]->setGraph(globalGraphs[i]);
 		layout->addWidget(globalViews[i]);
@@ -43,7 +44,8 @@ PerformanceView::PerformanceView(QWidget *parent) : QWidget(parent), coreGraphs(
 	for(uint i = 0; i != cpus; i++) {
 		coreViews[i] = new GraphView();
 		coreGraphs[i] = new TimeGraph();
-		coreViews[i]->setGraduations(2, 0.25);
+		coreViews[i]->setYLabel("%1%");
+		coreViews[i]->setGraduations(2, 25);
 		coreViews[i]->setGraph(coreGraphs[i]);
 		coreLayout->addWidget(coreViews[i], i % rows, i / rows);
 	}
@@ -59,10 +61,10 @@ PerformanceView::~PerformanceView() {
 void PerformanceView::setGraphTimeWindow(double t) {
 	for(int i = 0; i != MonitorRole::Max; i++) {
 		globalGraphs[i]->setTimeWindow(t);
-		globalViews[i]->setViewport(0, 0, t, 1);
+		globalViews[i]->setViewport(0, 0, t, 100);
 	}
 	for(uint i = 0; i != SystemMonitor::getMonitor()->getCpuCount(); i++) {
-		coreViews[i]->setViewport(0, 0, t, 1);
+		coreViews[i]->setViewport(0, 0, t, 100);
 		coreGraphs[i]->setTimeWindow(t);
 	}
 }

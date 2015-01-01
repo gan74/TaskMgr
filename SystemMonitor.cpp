@@ -58,10 +58,10 @@ uint SystemMonitor::getCpuCount() const {
 void SystemMonitor::run() {
 	qDebug("Monitor started");
 	while(true) {
-		values[MonitorRole::Cpu] = cpuTotal / 100;
-		values[MonitorRole::Memory] = getSystemMemoryUsage();
+		values[MonitorRole::Cpu] = cpuTotal;
+		values[MonitorRole::Memory] = getSystemMemoryUsage() * 100;
 		for(uint i = 0; i != systemInfos.cpus; i++) {
-			coreValues[i] = cpuCores[i]->getValue() / 100;
+			coreValues[i] = cpuCores[i]->getValue();
 		}
 		emit(infoUpdated());
 		msleep(updateTime * 1000);

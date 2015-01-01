@@ -74,14 +74,15 @@ QStringList ProcessView::getHeaderLabels() {
 	return {QObject::tr("Name"),
 			QObject::tr("PID"),
 			QObject::tr("Parent"),
-			QObject::tr("CPU") + QString(" (%1%)").arg(round(SystemMonitor::getMonitor()->getCpuUsage() * 100)),
-			QObject::tr("Memory") + QString(" (%1%)").arg(round(SystemMonitor::getMonitor()->getMemoryUsage() * 100))};
+			QObject::tr("CPU") + QString(" (%1%)").arg(round(SystemMonitor::getMonitor()->getCpuUsage())),
+			QObject::tr("Memory") + QString(" (%1%)").arg(round(SystemMonitor::getMonitor()->getMemoryUsage()))};
 }
 
 ProcessView::ProcessView(QWidget *parent) : QTreeWidget(parent), monitor(0) {
 	setHeaderLabels(getHeaderLabels());
 	//setIndentation(0);
 	setTreePosition(Max);
+	setExpandsOnDoubleClick(false);
 	setSelectionMode(QAbstractItemView::SingleSelection);
 	header()->setSectionHidden(Parent, true);
 	setSortingEnabled(true);
@@ -149,6 +150,7 @@ void ProcessView::openMonitor(QTreeWidgetItem *item) {
 	if(monitor) {
 		monitor->parent()->setSelected(false);
 		monitor->parent()->removeChild(monitor);
+		delete monitor;
 		monitor = 0;
 	}
 	if(it) {

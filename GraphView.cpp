@@ -114,7 +114,7 @@ void GraphView::paintEvent(QPaintEvent *event) {
 		}
 		painter.fillRect(rect(), fillColor);
 		if(!points.isEmpty()) {
-			painter.drawText(rect(), Qt::AlignCenter, yLabel.arg(QString::number(points.last().y(), 'f', 2)));
+			painter.drawText(rect(), Qt::AlignCenter, yLabel.arg(QString::number(points.last().y(), 'f', qMax(2 - (int)log10(max - min), 0))));
 		}
 		return;
 	}

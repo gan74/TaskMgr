@@ -72,7 +72,7 @@ class ProcessMonitorImpl
 			cpuTimes.lastKer = ker;
 			cpuTimes.lastUser = user;
 			double u = double(sysTime) / (double(dt) * sysInfo.dwNumberOfProcessors);
-			return cpuTimes.acc = cpuTimes.acc * cpuSmoothing + u * (1.0 - cpuSmoothing);
+			return (cpuTimes.acc = cpuTimes.acc * cpuSmoothing + u * (1.0 - cpuSmoothing)) * 100;
 		}
 
 		bool terminate() {
