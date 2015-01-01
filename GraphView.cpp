@@ -98,6 +98,9 @@ void GraphView::paintEvent(QPaintEvent *event) {
 			min = viewport.y1();
 		} else {
 			heightOffset = 0;
+			for(QPointF &p : points) {
+				p.setY(0);
+			}
 		}
 		double d = (max - min) / 10;
 		view = QLineF(view.x1(), min, view.x2(), max + d);
@@ -128,32 +131,30 @@ void GraphView::paintEvent(QPaintEvent *event) {
 			painter.drawLine(QLineF(x, clip.y() + heightOffset, x, clip.y() + clip.height() - heightOffset));
 		}
 	}
-	if(view.dy()) {
-		painter.setTransform(trans);
-		if(grads.y()) {
-			int i = 0;
-			for(; i * grads.y() < view.dy(); i++) {
-				painter.drawLine(QLineF(0, i * grads.y(), view.dx(), i * grads.y()));
-			}
+	painter.setTransform(trans);
+	if(view.dy() && grads.y()) {
+		int i = 0;
+		for(; i * grads.y() < view.dy(); i++) {
+			painter.drawLine(QLineF(0, i * grads.y(), view.dx(), i * grads.y()));
 		}
-		if(points.size() > 1) {
-			QPolygonF poly(points);
-			trans.translate(-view.x1(), -view.y1());
-			painter.setTransform(trans);
-
-			QPainterPath path;
-			path.addPolygon(poly);
-			path.lineTo(QPointF(points.last().x(), view.y1() - view.dy()));
-			path.lineTo(QPointF(points.first().x(), view.y1() - view.dy()));
-			painter.fillPath(path, QBrush(fillColor));
-
-			QPen linePen(color);
-			linePen.setWidthF(0.0);
-			painter.setPen(linePen);
-			painter.drawPolyline(poly);
-		}
-		painter.setTransform(QTransform());
 	}
+	if(points.size() > 2) {
+		QPolygonF poly(points);
+		trans.translate(-view.x1(), -view.y1());
+		painter.setTransform(trans);
+
+		QPainterPath path;
+		path.addPolygon(poly);
+		path.lineTo(QPointF(points.last().x(), view.y1() - qMax(view.dy(), 1.0)));
+		path.lineTo(QPointF(points.first().x(), view.y1() - qMax(view.dy(), 1.0)));
+		painter.fillPath(path, QBrush(fillColor));
+
+		QPen linePen(color);
+		linePen.setWidthF(0.0);
+		painter.setPen(linePen);
+		painter.drawPolyline(poly);
+	}
+	painter.setTransform(QTransform());
 	painter.setRenderHint(QPainter::Antialiasing, false);
 	painter.setPen(borderColor);
 	painter.drawRect(clip.adjusted(0, 0, -1, -1));
