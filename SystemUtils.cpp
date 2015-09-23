@@ -19,6 +19,27 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 static_assert(sizeof(FILETIME) == sizeof(unsigned long long), "FILETIME should be the same as unsigned long long");
 
+
+ProcessDescriptor::Priority priority(int w) {
+	switch(w) {
+		case IDLE_PRIORITY_CLASS:
+			return ProcessDescriptor::Idle;
+		case BELOW_NORMAL_PRIORITY_CLASS:
+			return ProcessDescriptor::Low;
+		case NORMAL_PRIORITY_CLASS:
+			return ProcessDescriptor::Normal;
+		case ABOVE_NORMAL_PRIORITY_CLASS:
+			return ProcessDescriptor::High;
+		case HIGH_PRIORITY_CLASS:
+			return ProcessDescriptor::VeryHigh;
+		case REALTIME_PRIORITY_CLASS:
+			return ProcessDescriptor::RealTime;
+		default:
+			return ProcessDescriptor::Max;
+	}
+}
+
+
 QList<ProcessDescriptor> getProcesses() {
 	QList<ProcessDescriptor> procs;
 	wchar_t buffer[512] = {0};
@@ -57,7 +78,7 @@ QList<ProcessDescriptor> getProcesses() {
 									   std::string(name.begin(), name.end()).c_str(),
 									   pe32.th32ProcessID,
 									   pe32.th32ParentProcessID,
-									   dwPriorityClass));
+									   priority(dwPriorityClass)));
 	} while(Process32Next(hProcessSnap, &pe32));
 	CloseHandle(hProcessSnap);
 	return procs;

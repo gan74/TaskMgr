@@ -20,8 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <iostream>
 
 GraphView::GraphView(QWidget *parent) : QWidget(parent), graph(0), viewport(0, 0, 1, -1), grads(0, 0), graphHeightOffset(5), allowCompactMode(true), color(SystemMonitor::getGraphColor((MonitorRole)0)), yLabel("%1") {
-	setAutoFillBackground(true);
-	setMinimumHeight(35);
+	setMinimumHeight(25);
 }
 
 GraphView::~GraphView() {
@@ -124,7 +123,7 @@ void GraphView::paintEvent(QPaintEvent *event) {
 	QColor fillColor = QColor::fromHsl(color.hslHue(), color.hslSaturation(), 240);
 	fillColor.setAlphaF(0.5);
 
-	int graphMargin = 0;
+	int graphMargin = 1;
 	QRect clip(graphMargin, graphMargin, width() - 2 * graphMargin, height() - 2 * graphMargin);
 
 	painter.fillRect(rect(), Qt::white);

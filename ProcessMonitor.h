@@ -33,11 +33,17 @@ class ProcessMonitor : public QObject
 
 		uint getWorkingSet() const;
 		double getCpuUsage() const;
+		double getTotalCpuTime() const;
+
 		uint getReads() const;
 		uint getWrites() const;
 
+		QDateTime getCreationTime() const;
+
 		ProcessMonitor &operator=(const ProcessMonitor &) = delete;
 		ProcessMonitor(const ProcessMonitor &) = delete;
+
+		const ProcessDescriptor &getProcessDescriptor() const;
 
 		TimeGraph *getGraph(MonitorRole mon);
 
@@ -45,6 +51,7 @@ class ProcessMonitor : public QObject
 		bool terminate();
 
 	private:
+		ProcessDescriptor proc;
 		ProcessMonitorImpl *impl;
 
 		TimeGraph *graphs[MonitorRole::Max];

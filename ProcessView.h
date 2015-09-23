@@ -131,6 +131,7 @@ class ProcessView : public QTreeWidget
 
 		QTimer updateTimer;
 		MonitorItem *monitor;
+		QModelIndex monitorIndex;
 
 };
 

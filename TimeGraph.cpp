@@ -41,7 +41,7 @@ double TimeGraph::add(double value) {
 }
 
 QVector<QPointF> TimeGraph::getPoints() const {
-	double dt = timeToDouble();
+	double dt = data.isEmpty() ? 0 : data.last().time;
 	QVector<QPointF> pts;
 	pts.reserve(data.size());
 	for(const Node &n : data) {

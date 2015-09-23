@@ -70,9 +70,9 @@ QStringList ProcessView::getHeaderLabels() {
 
 ProcessView::ProcessView(QWidget *parent) : QTreeWidget(parent), monitor(0) {
 	setHeaderLabels(getHeaderLabels());
-	//setIndentation(0);
-	setTreePosition(Max);
-	setExpandsOnDoubleClick(false);
+	setIndentation(0);
+	setItemsExpandable(false);
+	setRootIsDecorated(false);
 	setSelectionMode(QAbstractItemView::SingleSelection);
 	header()->setSectionHidden(Parent, true);
 	setSortingEnabled(true);
@@ -147,7 +147,7 @@ void ProcessView::openMonitor(QTreeWidgetItem *item) {
 		monitor = new MonitorItem(it);
 		item->setExpanded(true);
 		item->setSelected(true);
-		monitor->setSizeHint(0, QSize(600, 100));
+		monitorIndex = indexFromItem(item);
 	}
 }
 

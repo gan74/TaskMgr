@@ -22,10 +22,28 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 class ProcessDescriptor
 {
 	public:
-		ProcessDescriptor(const QString &e, const QString &n, int i, int par, int pri) : exe(e), name(n), id(i), parent(par), prio(pri) {
+		enum Priority
+		{
+			Idle = 0,
+			Low = 1,
+			Normal = 2,
+			High = 3,
+			VeryHigh = 4,
+			RealTime = 5,
+			Max
+		};
+
+
+		static QString getPriorityName(Priority p) {
+			QString names[] = {"Idle", "Low", "Normal", "High", "Very hight", "Real time", "Unknown"};
+			return names[p];
 		}
 
-		ProcessDescriptor() : ProcessDescriptor("", "", -1, -1, -1) {
+
+		ProcessDescriptor(const QString &e, const QString &n, int i, int par, Priority pri) : exe(e), name(n), id(i), parent(par), prio(pri) {
+		}
+
+		ProcessDescriptor() : ProcessDescriptor("", "", -1, -1, Max) {
 		}
 
 		ProcessDescriptor(const ProcessDescriptor &) = default;
@@ -34,7 +52,11 @@ class ProcessDescriptor
 		QString name;
 		int id;
 		int parent;
-		int prio;
+		Priority prio;
+
+		QString getPriorityName() const {
+			return getPriorityName(prio);
+		}
 
 		bool operator==(const ProcessDescriptor &p) const {
 			return id == p.id;

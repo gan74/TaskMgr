@@ -37,7 +37,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 typedef size_t uint;
 typedef unsigned long long ullong;
 
-constexpr double cpuSmoothing = 0.5;
+constexpr double cpuSmoothing = 0.0;
 
 
 #endif // SYSTEMINCLUDES

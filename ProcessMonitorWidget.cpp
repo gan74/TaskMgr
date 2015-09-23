@@ -28,6 +28,8 @@ ProcessMonitorWidget::ProcessMonitorWidget(ProcessMonitor *mon, QWidget *parent)
 	vLayout->addWidget(terminateButton);
 	vLayout->addWidget(reads = new QLabel());
 	vLayout->addWidget(writes = new QLabel());
+	vLayout->addWidget(new QLabel(tr("Created : ") + mon->getCreationTime().toString(Qt::SystemLocaleShortDate)));
+	vLayout->addWidget(new QLabel(tr("Priority : ") + mon->getProcessDescriptor().getPriorityName()));
 	vLayout->addStretch();
 	QHBoxLayout *layout = new QHBoxLayout(this);
 	layout->addLayout(graphLayout, 1);

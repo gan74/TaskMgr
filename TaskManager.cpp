@@ -51,6 +51,7 @@ void setUp(QWidget *wid) {
 TaskManager::TaskManager(QWidget *parent) : QTabWidget(parent) {
 	addTab(new ProcessView(), tr("Processes"));
 	addTab(new PerformanceView(), tr("Performance"));
+	setMinimumSize(400, 300);
 	resize(800, 600);
 
 	//setUp(this);

@@ -17,6 +17,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "ProcessMonitor.h"
 #include "SystemIncludes.h"
 
+QDateTime systemToQ(SYSTEMTIME sys) {
+	QDateTime d;
+	d.setDate(QDate(sys.wYear, sys.wMonth, sys.wDay));
+	d.setTime(QTime(sys.wHour, sys.wMinute, sys.wSecond));
+	return d;
+}
+
 class ProcessMonitorImpl
 {
 	public:
@@ -39,7 +46,6 @@ class ProcessMonitorImpl
 			}
 			return pmc.WorkingSetSize;
 		}
-
 
 		double getCpuUsage() {
 			if(!handle) {
@@ -73,6 +79,25 @@ class ProcessMonitorImpl
 			cpuTimes.lastUser = user;
 			double u = double(sysTime) / (double(dt) * sysInfo.dwNumberOfProcessors);
 			return (cpuTimes.acc = cpuTimes.acc * cpuSmoothing + u * (1.0 - cpuSmoothing)) * 100;
+		}
+
+		double getTotalCpuTime() {
+			return (cpuTimes.lastKer + cpuTimes.lastUser) * 10000000;
+		}
+
+		QDateTime getCreationTime() {
+			ullong c = 0;
+			ullong n = 0;
+			if(!GetProcessTimes(handle, (LPFILETIME)&c, (LPFILETIME)&n, (LPFILETIME)&n, (LPFILETIME)&n)) {
+				return QDateTime();
+			}
+			SYSTEMTIME sys;
+			if(!FileTimeToSystemTime((LPFILETIME)&c, &sys)) {
+				return QDateTime();
+			}
+			QDateTime q = systemToQ(sys);
+			return q.addSecs(q.offsetFromUtc());
+
 		}
 
 		uint getReads() {
@@ -116,11 +141,19 @@ class ProcessMonitorImpl
 };
 
 
-ProcessMonitor::ProcessMonitor(const ProcessDescriptor &d, QObject *parent) : QObject(parent), impl(new ProcessMonitorImpl(d)), graphs{new TimeGraph(this), new TimeGraph(this)} {
+ProcessMonitor::ProcessMonitor(const ProcessDescriptor &d, QObject *parent) : QObject(parent), proc(d), impl(new ProcessMonitorImpl(d)), graphs{new TimeGraph(this), new TimeGraph(this)} {
 }
 
 ProcessMonitor::~ProcessMonitor() {
 	delete impl;
+}
+
+const ProcessDescriptor &ProcessMonitor::getProcessDescriptor() const {
+	return proc;
+}
+
+QDateTime ProcessMonitor::getCreationTime() const {
+	return impl->getCreationTime().toLocalTime();
 }
 
 uint ProcessMonitor::getReads() const {
@@ -129,6 +162,10 @@ uint ProcessMonitor::getReads() const {
 
 uint ProcessMonitor::getWrites() const {
 	return impl->getWrites();
+}
+
+double ProcessMonitor::getTotalCpuTime() const {
+	return impl->getTotalCpuTime();
 }
 
 uint ProcessMonitor::getWorkingSet() const {
